@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union
 import argparse
 import cv2 
 from datasets import load_dataset
@@ -105,9 +105,57 @@ class ToTensor():
         sample['features'] = torch.from_numpy(sample['features'])
         return sample
     
+class Downsample():
+    """
+    """
+    def __init__(self, method:str='uniform', step_size:int=5):
+        self.method = method
+        self.step_size = step_size
+        
+
+    def __call__(self, sample:Dict[str, Union[np.ndarray, torch.Tensor]]) -> Dict[str,torch.Tensor]:
+        """
+        Transform sample
+        :param sample: dict, sample
+        :return sample: dict, transformed sample
+        """
+        temp = sample['features']
+        if self.method == 'uniform':
+            temp = temp[::self.step_size]
+        elif self.method == 'mean':
+            temp = self._mean_pooling(temp)
+
+    def _mean_pooling(self, input_array):
+        """
+            Performs mean pooling on a 2D NumPy array.
+
+            Args:
+                input_array (numpy.ndarray): The input array.
+                kernel_size (int): The size of the pooling kernel (both height and width).
+                stride (int, optional): The stride of the pooling operation. If None, it defaults to kernel_size.
+                
+
+            Returns:
+                numpy.ndarray: The pooled output array.
+        """
+        input_height, input_width = input_array.shape
+        padded_array = input_array
+        output_height = (input_height - self.step_size) // self.step_size + 1
+        output_width = input_width
+
+        output_array = np.zeros((output_height, output_width))
+
+        for i in range(output_height):
+            start_row = i * self.step_size
+            end_row = start_row + self.step_size
+            output_array[i,:] = np.mean(padded_array[start_row:end_row, :])
+
+        return output_array
+    
 class VideoDataset(Dataset):
     def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', access_token:str=None, 
-                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False):
+                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False,
+                 downsample:bool=True, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
         self.paths = load_dataset(dataset, token=access_token)['test']
         print('Dataset metadata loaded.')
@@ -117,6 +165,8 @@ class VideoDataset(Dataset):
         self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
         self.features = {}
         self.overwrite = overwrite
+        self.downsample = downsample
+        self.to_tensor = to_tensor
         
         print('Loading features...')
         self._load_features()
@@ -126,7 +176,17 @@ class VideoDataset(Dataset):
 
         self.files = list(self.features.keys())
         print(self.files)
-        self.transform = torchvision.transforms.Compose([ToTensor()])
+
+        transforms = []
+        if self.downsample:
+            transforms.append(Downsample(method=downsample_method, step_size=int(1/cutoff_freq)))
+        if self.to_tensor:
+            transforms.append(ToTensor())
+
+        if transforms != []:
+            self.transform = torchvision.transforms.Compose(transforms)
+        else:
+            self.transform = None
 
     def _load_features(self):
         paths = sorted(list(self.feature_root.rglob('*.npz')))
@@ -179,12 +239,15 @@ class VideoDataset(Dataset):
         Get item
         
         :param idx: int/List of ints/tensor of indices
-        :return: dict, transformed sample
+        :return: dict, transformed sample - the features will be in form (TIME, FEATURE_DIM)
         """
         f = self.files[idx]
         sample = {'files':f, 'features': self.features[f]}
 
-        return self.transform(sample)
+        if self.transform != None:
+            return self.transform(sample)
+        else:
+            return sample
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -198,10 +261,16 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--token', type=str, required=True)
+    parser.add_argument('--downsample', action='store_true')
+    parser.add_argument('--downsample_method', type='str', default='uniform', help="uniform or mean")
+    parser.add_argument('--cutoff_freq', type=float, default=0.2)
+    parser.add_argument('--to_tensor', action='store_true')
     args = parser.parse_args()
 
     vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, feature_root=args.feature_dir, 
-                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, access_token=args.token)
+                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, access_token=args.token,
+                                downsample=args.downsample, downsample_method=args.downsample_method, cutoff_freq=args.cutoff_freq,
+                                to_tensor=args.to_tensor)
 
     # example
     """

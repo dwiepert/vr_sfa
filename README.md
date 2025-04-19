@@ -6,7 +6,10 @@
 ``` python feature_extraction.py --root_dir=<PATH_TO_HIGHEST_VIDEO_DIRECTORY> --feature_dir=<PATH_TO_SAVE_FEATURES_TO> --token=<HUGGINGFACE_ACCESS_TOKEN> ```
 This will run it with an extraction batch size of 16 and for VideoMAEv2-Large on the temporal bench dataset. You can also set `--overwrite` to re-extract features
 
-This can be used to both extract features (if features don't exist it will save them out) and load features. 
+This can be used to both extract features (if features don't exist it will save them out) and load features. The features will be of size (t, feature_dim).
+
+*NOTE: DOWNSAMPLING
+To trigger downsampling with default features, use `--downsample` in the command. I only recommend potentially changing `--downsample_type` from uniform to mean as an ablation/test case. 
 
 ## Benchmarking (Vivian + Macy)
 1. download TemporalBench dataset
