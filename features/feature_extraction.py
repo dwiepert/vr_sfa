@@ -172,7 +172,6 @@ class VideoDataset(Dataset):
         self.feature_root = Path(feature_root)
         self.feature_root.mkdir(parents=True, exist_ok=True)
         self.split = split
-        self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
         self.features = {}
         self.overwrite = overwrite
         self.downsample = downsample
@@ -183,6 +182,7 @@ class VideoDataset(Dataset):
         print('Loading features...')
         self._load_features()
         if not self.use_existing:
+            self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
             self._extract_features() 
         #print(self.features)
 
