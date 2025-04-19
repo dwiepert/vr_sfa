@@ -31,7 +31,6 @@ def custom_collatefn(batch) -> torch.tensor:
     """
     warnings.filterwarnings("ignore")
 
-    print(batch)
     feat_list = []
     file_list = []
     max_t = 0
