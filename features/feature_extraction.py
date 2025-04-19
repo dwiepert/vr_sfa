@@ -160,7 +160,7 @@ class VideoDataset(Dataset):
                  feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False,
                  downsample:bool=True, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
-        self.video_root = video_root
+        self.video_root = Path(video_root)
         if use_dataset:
             self.paths = load_dataset(dataset, token=access_token)['test']
         else:
@@ -170,7 +170,7 @@ class VideoDataset(Dataset):
             self.paths = [p.relative_to(self.video_root) for p in paths]
             print(self.paths)
         print('Dataset metadata loaded.')
-        self.feature_root = feature_root
+        self.feature_root = Path(feature_root)
         self.feature_root.mkdir(parents=True, exist_ok=True)
         self.split = split
         self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
