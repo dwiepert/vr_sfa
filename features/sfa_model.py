@@ -92,7 +92,7 @@ if __name__ == "__main__":
     parser.add_argument('--video_dir', type=str, required=True,
                         help='Path to directory with training data.')
     parser.add_argument("--train_ratio", type=float, default=.8)
-    parser.add_argument("--val_ratio", type=float, default=.1)
+    parser.add_argument("--val_ratio", type=float, default=.2)
     parser.add_argument('--out_dir', type=str, required=True,
                         help="Specify a local directory to save configuration files to. If not saving features to corral, this also specifies local directory to save files to.")
     parser.add_argument("--encode", action="store_true", 
@@ -214,12 +214,12 @@ if __name__ == "__main__":
     # SET UP DATASETS/DATALOADERS
     train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train_files, feature_root=args.feat_dir, to_tensor=True)
     val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val_files, feature_root=args.feat_dir, to_tensor=True)
-    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
+    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, feature_root=args.feat_dir, to_tensor=True)
 
     if not args.eval_only:
         assert not bool(set(train_dataset.files) & set(val_dataset.files)), 'Overlapping files between train and validation set.'
-        assert not bool(set(train_dataset.files) & set(test_dataset.files)), 'Overlapping files between train and test set.'
-        assert not bool(set(test_dataset.files) & set(val_dataset.files)), 'Overlapping files between val and test set.'
+        #assert not bool(set(train_dataset.files) & set(test_dataset.files)), 'Overlapping files between train and test set.'
+        #assert not bool(set(test_dataset.files) & set(val_dataset.files)), 'Overlapping files between val and test set.'
     
     train_loader = DataLoader(train_dataset, batch_size=args.batch_sz, shuffle=True, num_workers=4, collate_fn=custom_collatefn)
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn)

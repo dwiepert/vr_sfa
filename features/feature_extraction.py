@@ -261,7 +261,10 @@ class VideoDataset(Dataset):
     
     def _extract_features(self):
         for item in tqdm(self.paths):
-            path = Path(item["video_name"])
+            if isinstance(item, dict):
+                path = Path(item["video_name"])
+            else:
+                path = item
             new_path = self.feature_root / path.with_suffix(".npz")
             run = True
             if new_path.exists() and not self.overwrite: run = False
