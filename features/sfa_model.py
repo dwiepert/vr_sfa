@@ -186,9 +186,9 @@ if __name__ == "__main__":
 
 
     # SET UP DATASETS/DATALOADERS
-    train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train_files, feature_root=args.feat_dir, to_tensor=True)
-    val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val_files, feature_root=args.feat_dir, to_tensor=True)
-    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
+    train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train_files, feature_root=args.feat_dir, to_tensor=False)
+    val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val_files, feature_root=args.feat_dir, to_tensor=False)
+    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=False)
 
     if not args.eval_only:
         assert not bool(set(train_dataset.files) & set(val_dataset.files)), 'Overlapping files between train and validation set.'
