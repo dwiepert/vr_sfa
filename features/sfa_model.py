@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 from emaae.io import custom_collatefn
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
-from features.feature_extraction import VideoDataset
+from feature_extraction import VideoDataset
 
 
 class DatasetSplitter:
