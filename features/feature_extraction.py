@@ -53,7 +53,6 @@ class MAE_Extractor():
         #vid_tube = np.lib.stride_tricks.sliding_window_view(vid_tube, self.fnum, axis=0)
         # vid_tube = np.transpose(vid_tube, (0,4,1,2,3))
         vid_tube = np.array_split(vid_tube, np.arange(self.fnum, len(vid_tube), self.fnum))
-
         vid_tube = np.transpose(vid_tube, (0,4,1,2,3))
 
         #vid_tube = torch.from_numpy(vid_tube).to(device, non_blocking=True).float()
@@ -79,7 +78,7 @@ class MAE_Extractor():
         
         pixels = inputs['pixel_values'].permute(0, 2, 1, 3, 4)
         
-        #print(f'Input shape: {pixels.shape}')
+        print(f'Input shape: {pixels.shape}')
         batches = torch.split(pixels, self.batch_size, dim=0)
         del inputs
         batched_output = []
@@ -260,7 +259,7 @@ if __name__ == "__main__":
                         help='Path to directory with video files.')
     parser.add_argument('--feature_dir', type=Path, required=True,
                         help='Path to directory to load/save features from.')
-    parser.add_argument('--batch_sz', type=str, default=16,
+    parser.add_argument('--batch_sz', type=str, default=8,
                         help='Path to directory to load/save features from.')
     parser.add_argument('--model_ckpt',type=str, default="OpenGVLab/VideoMAEv2-Base")
     parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
