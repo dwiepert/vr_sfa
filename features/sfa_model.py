@@ -79,9 +79,9 @@ if __name__ == "__main__":
                                 help='Path to model config json. Default = None')
     model_args.add_argument('--model_type', type=str, default='cnn', 
                                 help='Type of autoencoder to initialize.')
-    model_args.add_argument('--input_dim', type=int, default=1024,
+    model_args.add_argument('--input_dim', type=int, default=768,
                                 help='Input dimensions')
-    model_args.add_argument('--inner_size', type=int, default=1024,
+    model_args.add_argument('--inner_size', type=int, default=768,
                                 help='Size of encoder representations to learn.')
     model_args.add_argument('--n_encoder', type=int, default=5, 
                                 help='Number of encoder blocks to use in model.')
