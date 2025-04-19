@@ -212,7 +212,7 @@ class VideoDataset(Dataset):
             transforms.append(ToTensor())
 
         self.transform = torchvision.transforms.Compose(transforms)
-
+        print(transforms)
         self._get_maxt()
 
         s = self.features[self.files[0]].shape
@@ -288,6 +288,7 @@ class VideoDataset(Dataset):
         """
         f = self.files[idx]
         sample = {'files':f, 'features': self.features[f]}
+        print(sample)
         transformed = self.transform(sample)
         print(transformed)
         return transformed
