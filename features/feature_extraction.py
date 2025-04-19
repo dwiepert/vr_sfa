@@ -157,7 +157,7 @@ class Downsample():
     
 class VideoDataset(Dataset):
     def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, access_token:str=None, 
-                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False,
+                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False, use_existing:bool=False,
                  downsample:bool=True, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
         self.video_root = Path(video_root)
@@ -168,7 +168,6 @@ class VideoDataset(Dataset):
             #if split is not None:
             #paths = [p for p in paths if p in split]
             self.paths = [p.relative_to(self.video_root) for p in paths]
-            print(self.paths)
         print('Dataset metadata loaded.')
         self.feature_root = Path(feature_root)
         self.feature_root.mkdir(parents=True, exist_ok=True)
@@ -178,10 +177,13 @@ class VideoDataset(Dataset):
         self.overwrite = overwrite
         self.downsample = downsample
         self.to_tensor = to_tensor
+
+        self.use_existing=use_existing
         
         print('Loading features...')
         self._load_features()
-        self._extract_features() 
+        if not self.use_existing:
+            self._extract_features() 
         #print(self.features)
 
         if self.split is not None:
@@ -189,7 +191,7 @@ class VideoDataset(Dataset):
         print('Features loaded.')
 
         self.files = list(self.features.keys())
-        #print(self.files)
+        print(f'# of files: {len(self.files)}')
 
         transforms = []
         if self.downsample:
@@ -300,10 +302,11 @@ if __name__ == "__main__":
     parser.add_argument('--downsample_method', type=str, default='uniform', help="uniform or mean")
     parser.add_argument('--cutoff_freq', type=float, default=0.2)
     parser.add_argument('--to_tensor', action='store_true')
+    parser.add_argument('--use_existing', action='store_true')
     args = parser.parse_args()
 
     vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, use_dataset=args.use_dataset,feature_root=args.feature_dir, 
-                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, access_token=args.token,
+                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, use_existing=args.use_existing, access_token=args.token,
                                 downsample=args.downsample, downsample_method=args.downsample_method, cutoff_freq=args.cutoff_freq,
                                 to_tensor=args.to_tensor)
 
