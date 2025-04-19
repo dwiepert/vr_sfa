@@ -285,10 +285,13 @@ if __name__ == "__main__":
 
 
     if not args.eval_only:
-        optim, criterion, scheduler = set_up_train(model=model, device =device, optim_type=args.optimizer, lr=args.lr, loss1_type=args.reconstruction_loss,
+        optim, criterion, scheduler = set_up_train(model=model, device=device, optim_type=args.optimizer, lr=args.lr, loss1_type=args.reconstruction_loss,
                                         loss2_type=args.encoding_loss, alpha=args.alpha, weight_penalty=args.weight_penalty,
                                         penalty_scheduler=args.penalty_scheduler, lr_scheduler=args.lr_scheduler, epochs=args.alpha_epochs, end_lr=args.end_lr)
 
+        print(f'Train loader: {type(train_loader)}')
+        print(f'Train loader: {type(val_loader)}')
+        print(f'Model: {type(model)}')
         model = train(train_loader=train_loader, val_loader=val_loader, model=model, 
                       device=device, optim=optim, criterion=criterion, lr_scheduler=scheduler, save_path=save_path, 
                       epochs=args.epochs, alpha_epochs=args.alpha_epochs, update=args.update, 
