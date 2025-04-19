@@ -262,7 +262,7 @@ if __name__ == "__main__":
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--token', type=str, required=True)
     parser.add_argument('--downsample', action='store_true')
-    parser.add_argument('--downsample_method', type='str', default='uniform', help="uniform or mean")
+    parser.add_argument('--downsample_method', type=str, default='uniform', help="uniform or mean")
     parser.add_argument('--cutoff_freq', type=float, default=0.2)
     parser.add_argument('--to_tensor', action='store_true')
     args = parser.parse_args()
