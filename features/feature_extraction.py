@@ -74,7 +74,7 @@ class MAE_Extractor():
         
         pixels = inputs['pixel_values'].permute(0, 2, 1, 3, 4)
         
-        print(f'Input shape: {pixels.shape}')
+        #print(f'Input shape: {pixels.shape}')
         batches = torch.split(pixels, self.batch_size, dim=0)
         del inputs
         batched_output = []
@@ -89,7 +89,7 @@ class MAE_Extractor():
         outputs = torch.cat(batched_output, dim=0).cpu().numpy()
         del batched_output
         del batches
-        print(f'Output shape: {outputs.shape}')
+        #print(f'Output shape: {outputs.shape}')
         return outputs
     
 class ToTensor():
