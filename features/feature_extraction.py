@@ -279,9 +279,11 @@ class VideoDataset(Dataset):
         """
         f = self.files[idx]
         sample = {'files':f, 'features': self.features[f]}
-        if self.transform != None:
+        if self.transform is not None:
+            print('Transforming')
             return self.transform(sample)
         else:
+            print('Returning as is')
             return sample
     
 if __name__ == "__main__":
