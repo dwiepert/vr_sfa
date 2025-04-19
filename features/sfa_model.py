@@ -33,7 +33,7 @@ class DatasetSplitter:
     :param train_ratio: float (default = 0.8)
     :param val_ratio: float (default = 0.1)
     """
-    def __init__(self, paths: List[str,Path], train_ratio:float = 0.8, val_ratio:float = 0.1, seed=42):
+    def __init__(self, paths: List[Union[str,Path]], train_ratio:float = 0.8, val_ratio:float = 0.1, seed=42):
         self.paths = [str(p) for p in paths]
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
