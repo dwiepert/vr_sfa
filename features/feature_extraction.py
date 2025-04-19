@@ -204,6 +204,9 @@ class VideoDataset(Dataset):
 
         self._get_maxt()
 
+        s = self.features[self.files[0]].shape
+        print(f'Feature shape: {s}')
+
     def _load_features(self):
         paths = sorted(list(self.feature_root.rglob('*.npz')))
         paths = [p for p in paths if str(self.feature_root) in str(p)]

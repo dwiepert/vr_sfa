@@ -131,7 +131,7 @@ if __name__ == "__main__":
                             help='number of filters for evaluation')
     train_args.add_argument('--weight_penalty', action='store_true',
                                 help='Specify whether to add a penalty based on model weights.')
-    train_args.add_argument('--alpha', type=float, default=0.25,
+    train_args.add_argument('--alpha', type=float, default=0.001,
                                 help='Specify loss weights.')
     train_args.add_argument('--update', action='store_true',
                                 help='Specify whether to update alpha.')
