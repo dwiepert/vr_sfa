@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, List
 import argparse
 import cv2 
 from datasets import load_dataset
@@ -156,7 +156,7 @@ class Downsample():
         return output_array
     
 class VideoDataset(Dataset):
-    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', use_dataset:bool=True, access_token:str=None, 
+    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, access_token:str=None, 
                  feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False,
                  downsample:bool=True, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
@@ -165,11 +165,14 @@ class VideoDataset(Dataset):
             self.paths = load_dataset(dataset, token=access_token)['test']
         else:
             paths = self.video_root.rglob('*.mp4')
+            #if split is not None:
+            #paths = [p for p in paths if p in split]
             self.paths = [p.relative_to(self.video_root) for p in paths]
             print(self.paths)
         print('Dataset metadata loaded.')
         self.feature_root = feature_root
         self.feature_root.mkdir(parents=True, exist_ok=True)
+        self.split = split
         self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
         self.features = {}
         self.overwrite = overwrite
@@ -180,6 +183,9 @@ class VideoDataset(Dataset):
         self._load_features()
         self._extract_features() 
         #print(self.features)
+
+        if self.split is not None:
+            self._split_features()
         print('Features loaded.')
 
         self.files = list(self.features.keys())
@@ -196,6 +202,8 @@ class VideoDataset(Dataset):
         else:
             self.transform = None
 
+        self._get_maxt()
+
     def _load_features(self):
         paths = sorted(list(self.feature_root.rglob('*.npz')))
         paths = [p for p in paths if str(self.feature_root) in str(p)]
@@ -209,6 +217,14 @@ class VideoDataset(Dataset):
             del l
         
         del paths
+    
+    def _split_features(self):
+        new_features = {}
+        for f in self.features:
+            if f in self.split:
+                new_features[f] = self.features[f]
+        
+        self.features = new_features
 
     def _save_feature(self, feature, new_path):
         dirs = new_path.parent
@@ -235,6 +251,13 @@ class VideoDataset(Dataset):
             if new_path.exists() and not self.overwrite: run = False
 
             if run: self._get_feature(path, new_path)
+
+    def _get_maxt(self):
+        self.maxt=0 
+        for f in self.features:
+            feat = self.features[f]
+            if feat.shape[0] > self.maxt:
+                self.maxt = feat.shape[0]
             
     def __len__(self) -> int:
         """

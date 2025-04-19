@@ -11,6 +11,17 @@ This can be used to both extract features (if features don't exist it will save 
 *NOTE: DOWNSAMPLING
 To trigger downsampling with default features, use `--downsample` in the command. I only recommend potentially changing `--downsample_type` from uniform to mean as an ablation/test case. 
 
+## Training SFA
+Install `emaae` package:
+To install, use
+
+```
+$ git clone https://github.com/dwiepert/emaae.git
+$ cd emaae
+$ pip install . 
+```
+
+
 ## Benchmarking (Vivian + Macy)
 1. download TemporalBench dataset
 2. initialize model and write inference code in `eval/sfa_inference.py` (see `eval/llava-onevision.py` for example)
