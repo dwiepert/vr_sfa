@@ -224,7 +224,7 @@ class VideoDataset(Dataset):
             path = Path(item["video_name"])
             new_path = self.feature_root / path.with_suffix(".npz")
             run = True
-            if self.new_path.exists() and not self.overwrite: run = False
+            if new_path.exists() and not self.overwrite: run = False
 
             if run: self._get_feature(path, new_path)
             
