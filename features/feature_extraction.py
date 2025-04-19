@@ -1,0 +1,211 @@
+from typing import Dict
+import argparse
+import cv2 
+from datasets import load_dataset
+import numpy as np
+from pathlib import Path
+import torch
+import torchvision
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
+from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
+
+class MAE_Extractor():
+
+    def __init__(self, ckpt= "OpenGVLab/VideoMAEv2-Large", batch_size=16, device=torch.device('cuda')):
+        self.device = device
+        self.batch_size = batch_size
+        self.config = AutoConfig.from_pretrained(ckpt, trust_remote_code=True)
+        self.processor = VideoMAEImageProcessor.from_pretrained(ckpt)
+        self.model = AutoModel.from_pretrained(ckpt, config=self.config, trust_remote_code=True).to(self.device).eval()
+        self.target_size = (224, 224)
+        self.fnum = 16
+    
+    def _frame_from_video(self,video):
+        while video.isOpened():
+            success, frame = video.read()
+            if success:
+                yield frame
+            else:
+                break    
+
+    def _vid2list(self, path):
+        video = cv2.VideoCapture(path)
+        
+        frames = video.get(cv2.CAP_PROP_FRAME_COUNT) 
+        fps = video.get(cv2.CAP_PROP_FPS) 
+        
+        # calculate duration of the video 
+        seconds = round(frames / fps) 
+        if seconds < 5:
+            return None
+
+        frames = [x for x in self._frame_from_video(video)]
+
+        assert (len(frames) >= self.fnum)
+
+        vid_list = [cv2.resize(x[:,:,::-1], self.target_size) for x in frames]
+        vid_tube = [np.expand_dims(x, axis=(0, 1)) for x in vid_list]
+        vid_tube = np.concatenate(vid_tube, axis=1)
+        vid_tube = np.transpose(vid_tube, (0, 1, 4, 2, 3))
+        vid_tube = np.squeeze(vid_tube)
+        
+        vid_tube = np.lib.stride_tricks.sliding_window_view(vid_tube, self.fnum, axis=0)
+        vid_tube = np.transpose(vid_tube, (0,4,1,2,3))
+
+        #vid_tube = torch.from_numpy(vid_tube).to(device, non_blocking=True).float()
+        input_vids = []
+        for i in range(vid_tube.shape[0]):
+            input_vids.append(list(np.squeeze(vid_tube[i,:,:,:,:])))
+        
+        return input_vids
+    
+    def __call__(self, path):
+        vidlist = self._vid2list(path)
+
+        if vidlist is None:
+            return None 
+        
+    
+
+        inputs = self.processor(vidlist, return_tensors="pt")
+        
+        del vidlist
+        
+        pixels = inputs['pixel_values'].permute(0, 2, 1, 3, 4)
+        
+        print(f'Input shape: {pixels.shape}')
+        batches = torch.split(pixels, self.batch_size, dim=0)
+        del inputs
+        batched_output = []
+        with torch.no_grad():
+            for b in batches:
+                b = b.to(self.device)
+                #print(b.shape)
+                bo= self.model(pixel_values=b)
+                batched_output.append(bo)
+                del bo
+        
+        outputs = torch.cat(batched_output, dim=0).cpu().numpy()
+        del batched_output
+        del batches
+        print(f'Output shape: {outputs.shape}')
+        return outputs
+    
+class ToTensor():
+    """
+    Convert sample features/times from numpy to tensors
+    """
+    def __call__(self, sample:Dict[str,np.ndarray]) -> Dict[str,torch.Tensor]:
+        """
+        Transform sample
+        :param sample: dict, sample
+        :return sample: dict, transformed sample
+        """
+        sample['features'] = torch.from_numpy(sample['features'])
+        return sample
+    
+class VideoDataset(Dataset):
+    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', access_token:str=None, 
+                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False):
+        print('Loading dataset metadata ...')
+        self.paths = load_dataset(dataset, token=access_token)['test']
+        print('Dataset metadata loaded.')
+        self.feature_root = feature_root
+        self.feature_root.mkdir(parents=True, exist_ok=True)
+        self.video_root = video_root
+        self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
+        self.features = {}
+        self.overwrite = overwrite
+        
+        print('Loading features...')
+        self._load_features()
+        self._extract_features() 
+        print(self.features)
+        print('Features loaded.')
+
+        self.files = list(self.features.keys())
+        print(self.files)
+        self.transform = torchvision.transforms.Compose([ToTensor()])
+
+    def _load_features(self):
+        paths = sorted(list(self.feature_root.rglob('*.npz')))
+        paths = [p for p in paths if str(self.feature_root) in str(p)]
+
+        for f in paths:
+            l = np.load(f)
+            key = list(l)[0]
+            loaded = l[key]
+            self.features[str(f)]= loaded
+            del loaded
+            del l
+        
+        del paths
+
+    def _save_feature(self, feature, new_path):
+        dirs = new_path.parent
+        dirs.mkdir(parents=True, exist_ok=True)
+        np.savez(new_path, feature)
+        self.features[str(new_path)] = feature
+
+    def _get_feature(self, path, new_path):
+        load_path = self.video_root / path
+        if not load_path.exists():
+            print(f'{str(load_path)} does not exist.')
+            return
+        features = self.extractor(str(load_path))
+        if features is None:
+            return
+        self._save_feature(features, new_path)
+        del features
+    
+    def _extract_features(self):
+        for item in tqdm(self.paths):
+            path = Path(item["video_name"])
+            new_path = self.feature_root / path.with_suffix(".npz")
+            run = True
+            if self.new_path.exists() and not self.overwrite: run = False
+
+            if run: self._get_feature(path, new_path)
+            
+    def __len__(self) -> int:
+        """
+        :return: int, length of data
+        """
+        return len(self.features)
+
+    def __getitem__(self, idx:int) -> Dict[str,np.ndarray]:
+        """
+        Get item
+        
+        :param idx: int/List of ints/tensor of indices
+        :return: dict, transformed sample
+        """
+        f = self.files[idx]
+        sample = {'files':f, 'features': self.features[f]}
+
+        return self.transform(sample)
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--root_dir', type=Path, required=True,
+                        help='Path to directory with video files.')
+    parser.add_argument('--feature_dir', type=Path, required=True,
+                        help='Path to directory to load/save features from.')
+    parser.add_argument('--batch_sz', type=str, default=16,
+                        help='Path to directory to load/save features from.')
+    parser.add_argument('--model_ckpt',type=str, default="OpenGVLab/VideoMAEv2-Large")
+    parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
+    parser.add_argument('--overwrite', action='store_true')
+    parser.add_argument('--token', type=str, required=True)
+    args = parser.parse_args()
+
+    vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, feature_root=args.feature_dir, 
+                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, access_token=args.token)
+
+    # example
+    """
+    vid_loader = DataLoader(vid_features, batch_size=1)
+    for data in tqdm(vid_loader):
+        print('Use this to iterate through video dataset')
+    """

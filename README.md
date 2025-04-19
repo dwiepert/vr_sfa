@@ -1,6 +1,12 @@
 # VR SFA
 
+## Feature Loading
+1. download TemporalBench dataset
+2. Run feature_extraction.py and minimally run with:
+``` python feature_extraction.py --root_dir=<PATH_TO_HIGHEST_VIDEO_DIRECTORY> --feature_dir=<PATH_TO_SAVE_FEATURES_TO> --token=<HUGGINGFACE_ACCESS_TOKEN> ```
+This will run it with an extraction batch size of 16 and for VideoMAEv2-Large on the temporal bench dataset. You can also set `--overwrite` to re-extract features
 
+This can be used to both extract features (if features don't exist it will save them out) and load features. 
 
 ## Benchmarking (Vivian + Macy)
 1. download TemporalBench dataset
@@ -20,3 +26,6 @@
     # for captioning
     python get_captioning_score.py 
     ```
+
+
+    https://github.com/OpenGVLab/InternVideo/tree/main/InternVideo2/single_modality
