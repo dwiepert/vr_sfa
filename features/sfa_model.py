@@ -180,9 +180,9 @@ if __name__ == "__main__":
     ds = DatasetSplitter(paths = paths, train_ratio=args.train_ratio, val_ratio=args.val_ratio)
     train_files, val_files, test_files = ds.split_paths()
 
-    print(f'Train size: {len(train)}')
-    print(f'Val size: {len(val)}')
-    print(f'Test size: {len(test)}')
+    print(f'Train size: {len(train_files)}')
+    print(f'Val size: {len(val_files)}')
+    print(f'Test size: {len(test_files)}')
 
 
     # SET UP DATASETS/DATALOADERS
