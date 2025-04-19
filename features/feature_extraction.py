@@ -108,6 +108,18 @@ class ToTensor():
         sample['features'] = torch.from_numpy(sample['features'])
         return sample
     
+class Identity():
+    """
+    Convert sample features/times from numpy to tensors
+    """
+    def __call__(self, sample:Dict[str,np.ndarray]) -> Dict[str,torch.Tensor]:
+        """
+        Transform sample
+        :param sample: dict, sample
+        :return sample: dict, transformed sample
+        """
+        return sample
+    
 class Downsample():
     """
     """
@@ -193,16 +205,13 @@ class VideoDataset(Dataset):
         self.files = list(self.features.keys())
         print(f'# of files: {len(self.files)}')
 
-        transforms = []
+        transforms = [Identity()]
         if self.downsample:
             transforms.append(Downsample(method=downsample_method, step_size=int(1/cutoff_freq)))
         if self.to_tensor:
             transforms.append(ToTensor())
 
-        if transforms != []:
-            self.transform = torchvision.transforms.Compose(transforms)
-        else:
-            self.transform = None
+        self.transform = torchvision.transforms.Compose(transforms)
 
         self._get_maxt()
 
@@ -279,14 +288,10 @@ class VideoDataset(Dataset):
         """
         f = self.files[idx]
         sample = {'files':f, 'features': self.features[f]}
-        print(self.transform)
-        print(self.transform is None)
-        if self.transform is not None:
-            print('Transforming')
-            return self.transform(sample)
-        else:
-            print('Returning as is')
-            return sample
+        transformed = self.transform(sample)
+        print(transformed)
+        return transformed
+    
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
