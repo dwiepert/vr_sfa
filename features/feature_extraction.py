@@ -53,7 +53,6 @@ class MAE_Extractor():
         #vid_tube = np.lib.stride_tricks.sliding_window_view(vid_tube, self.fnum, axis=0)
         # vid_tube = np.transpose(vid_tube, (0,4,1,2,3))
         vid_tube = np.array_split(vid_tube, np.arange(self.fnum, len(vid_tube), self.fnum))
-        vid_tube = np.transpose(vid_tube, (0,4,1,2,3))
 
         #vid_tube = torch.from_numpy(vid_tube).to(device, non_blocking=True).float()
         input_vids = [list(v) for v in vid_tube]
