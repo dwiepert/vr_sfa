@@ -178,7 +178,7 @@ if __name__ == "__main__":
     #### GET DATA SPLITS
     paths = args.feat_dir.rglob('*npz')
     ds = DatasetSplitter(paths = paths, train_ratio=args.train_ratio, val_ratio=args.val_ratio)
-    train, val, test = ds.split_paths()
+    train_files, val_files, test_files = ds.split_paths()
 
     print(f'Train size: {len(train)}')
     print(f'Val size: {len(val)}')
@@ -186,9 +186,9 @@ if __name__ == "__main__":
 
 
     # SET UP DATASETS/DATALOADERS
-    train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train, feature_root=args.feat_dir, to_tensor=True)
-    val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val, feature_root=args.feat_dir, to_tensor=True)
-    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test, feature_root=args.feat_dir, to_tensor=True)
+    train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train_files, feature_root=args.feat_dir, to_tensor=True)
+    val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val_files, feature_root=args.feat_dir, to_tensor=True)
+    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
 
     if not args.eval_only:
         assert not bool(set(train_dataset.files) & set(val_dataset.files)), 'Overlapping files between train and validation set.'
@@ -289,9 +289,6 @@ if __name__ == "__main__":
                                         loss2_type=args.encoding_loss, alpha=args.alpha, weight_penalty=args.weight_penalty,
                                         penalty_scheduler=args.penalty_scheduler, lr_scheduler=args.lr_scheduler, epochs=args.alpha_epochs, end_lr=args.end_lr)
 
-        print(f'Train loader: {type(train_loader)}')
-        print(f'Train loader: {type(val_loader)}')
-        print(f'Model: {type(model)}')
         model = train(train_loader=train_loader, val_loader=val_loader, model=model, 
                       device=device, optim=optim, criterion=criterion, lr_scheduler=scheduler, save_path=save_path, 
                       epochs=args.epochs, alpha_epochs=args.alpha_epochs, update=args.update, 
