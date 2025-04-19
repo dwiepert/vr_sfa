@@ -257,7 +257,7 @@ if __name__ == "__main__":
                         help='Path to directory to load/save features from.')
     parser.add_argument('--batch_sz', type=str, default=16,
                         help='Path to directory to load/save features from.')
-    parser.add_argument('--model_ckpt',type=str, default="OpenGVLab/VideoMAEv2-Large")
+    parser.add_argument('--model_ckpt',type=str, default="OpenGVLab/VideoMAEv2-Base")
     parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--token', type=str, required=True)
