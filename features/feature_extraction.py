@@ -139,6 +139,8 @@ class Downsample():
             temp = temp[::self.step_size]
         elif self.method == 'mean':
             temp = self._mean_pooling(temp)
+        sample['features'] = temp
+        return sample
 
     def _mean_pooling(self, input_array):
         """
@@ -211,8 +213,9 @@ class VideoDataset(Dataset):
         if self.to_tensor:
             transforms.append(ToTensor())
 
-        self.transform = torchvision.transforms.Compose(transforms)
         print(transforms)
+        self.transforms = torchvision.transforms.Compose(transforms)
+        print(self.transforms)
         self._get_maxt()
 
         s = self.features[self.files[0]].shape
@@ -288,9 +291,9 @@ class VideoDataset(Dataset):
         """
         f = self.files[idx]
         sample = {'files':f, 'features': self.features[f]}
-        print(sample)
+        #print(sample)
         transformed = self.transform(sample)
-        print(transformed)
+        #print(transformed)
         return transformed
     
     
