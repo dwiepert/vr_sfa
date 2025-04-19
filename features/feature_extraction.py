@@ -156,15 +156,20 @@ class Downsample():
         return output_array
     
 class VideoDataset(Dataset):
-    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', access_token:str=None, 
+    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', use_dataset:bool=True, access_token:str=None, 
                  feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False,
                  downsample:bool=True, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
-        self.paths = load_dataset(dataset, token=access_token)['test']
+        self.video_root = video_root
+        if use_dataset:
+            self.paths = load_dataset(dataset, token=access_token)['test']
+        else:
+            paths = self.video_root.rglob('*.mp4')
+            self.paths = [p.relative_to(self.video_root) for p in paths]
+            print(self.paths)
         print('Dataset metadata loaded.')
         self.feature_root = feature_root
         self.feature_root.mkdir(parents=True, exist_ok=True)
-        self.video_root = video_root
         self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
         self.features = {}
         self.overwrite = overwrite
@@ -174,11 +179,11 @@ class VideoDataset(Dataset):
         print('Loading features...')
         self._load_features()
         self._extract_features() 
-        print(self.features)
+        #print(self.features)
         print('Features loaded.')
 
         self.files = list(self.features.keys())
-        print(self.files)
+        #print(self.files)
 
         transforms = []
         if self.downsample:
@@ -262,6 +267,7 @@ if __name__ == "__main__":
                         help='Path to directory to load/save features from.')
     parser.add_argument('--model_ckpt',type=str, default="OpenGVLab/VideoMAEv2-Base")
     parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
+    parser.add_argument('--use_dataset', action='store_true')
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--token', type=str, required=True)
     parser.add_argument('--downsample', action='store_true')
@@ -270,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument('--to_tensor', action='store_true')
     args = parser.parse_args()
 
-    vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, feature_root=args.feature_dir, 
+    vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, use_dataset=args.use_dataset,feature_root=args.feature_dir, 
                                 batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, access_token=args.token,
                                 downsample=args.downsample, downsample_method=args.downsample_method, cutoff_freq=args.cutoff_freq,
                                 to_tensor=args.to_tensor)
