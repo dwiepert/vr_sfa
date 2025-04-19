@@ -17,11 +17,38 @@ from typing import List, Union, Tuple, Dict
 import torch
 from torch.utils.data import DataLoader
 ##local
-from emaae.io import custom_collatefn
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
 from feature_extraction import VideoDataset
 
+
+def custom_collatefn(batch) -> torch.tensor:
+    """
+    Custom collate function to put batch together 
+
+    :param batch: batch from DataLoader object
+    :return: collated batch in proper format
+    """
+    warnings.filterwarnings("ignore")
+
+    print(batch)
+    feat_list = []
+    file_list = []
+    max_t = 0
+    for b in batch:
+        f = torch.transpose(b['features'],0,1)
+        if f.shape[-1] > max_t:
+            max_t = f.shape[-1]
+        feat_list.append(torch.transpose(b['features'],0,1))
+        file_list.append(b['files'])
+
+    for i in range(len(feat_list)):
+        f = feat_list[i]
+        if f.shape[-1] != max_t:
+            new_f = torch.nn.functional.pad(f,(0,max_t-f.shape[-1]), mode="constant", value=0)
+            feat_list[i] = new_f
+
+    return {'features':torch.stack(feat_list, 0), 'files':file_list}
 
 class DatasetSplitter:
     """
