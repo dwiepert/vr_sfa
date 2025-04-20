@@ -23,10 +23,12 @@ class MAE_Extractor():
         self.fnum = 16
     
     def _frame_from_video(self,video):
-
+        frame_count = 0
         while video.isOpened():
 
             success, frame = video.read()
+            frame_count +=1
+            print(frame_count)
             key = cv2.waitKey(1)
             if success:
                 yield frame
