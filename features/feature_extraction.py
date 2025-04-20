@@ -9,6 +9,7 @@ import torchvision
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
+import random
 
 class MAE_Extractor():
 
@@ -39,8 +40,16 @@ class MAE_Extractor():
         seconds = round(frames / fps) 
         if seconds < 5:
             return None
+        
+        #max_n_frames 
+        max_nframes = int(fps * (5*60))
+
 
         frames = [x for x in self._frame_from_video(video)]
+        if len(frames) > max_nframes:
+            s = random.randrange((len(frames) - max_nframes))
+            frames = frames[s:s+max_nframes]
+            assert len(frames) == max_nframes
 
         assert (len(frames) >= self.fnum)
 
