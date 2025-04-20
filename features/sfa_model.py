@@ -79,8 +79,12 @@ class DatasetSplitter:
         num_val = int(len(self.paths) * self.val_ratio)
         
         train = self.paths[:num_train]
-        val= self.paths[num_train:num_train + num_val]
-        test = self.paths[num_train + num_val:]
+        if self.train_ratio + self.val_ratio == 1:
+            val = self.paths[num_train:]
+            test = self.paths 
+        else:
+            val= self.paths[num_train:num_train + num_val]
+            test = self.paths[num_train + num_val:]
         
         return train, val, test
 
