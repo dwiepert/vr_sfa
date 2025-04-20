@@ -36,6 +36,7 @@ class MAE_Extractor():
         frames = video.get(cv2.CAP_PROP_FRAME_COUNT) 
         fps = video.get(cv2.CAP_PROP_FPS) 
         
+        print('Video opened')
         # calculate duration of the video 
         seconds = round(frames / fps) 
         if seconds < 5:
@@ -43,9 +44,12 @@ class MAE_Extractor():
         
         #max_n_frames 
         max_nframes = int(fps * (5*60))
+        print(max_nframes)
 
 
+        print('Getting frames')
         frames = [x for x in self._frame_from_video(video)]
+        print('Finished getting frames')
         if len(frames) > max_nframes:
             s = random.randrange((len(frames) - max_nframes))
             frames = frames[s:s+max_nframes]
