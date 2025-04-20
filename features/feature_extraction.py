@@ -28,7 +28,7 @@ class MAE_Extractor():
 
             success, frame = video.read()
             frame_count +=1
-            if frame_count > 18000:
+            if frame_count > 9000:
                 break
             key = cv2.waitKey(1)
             if success:
@@ -55,7 +55,7 @@ class MAE_Extractor():
 
         frames = [x for x in self._frame_from_video(video)]
         video.release()
-        print('Finished getting frames')
+        #print('Finished getting frames')
         #if len(frames) > max_nframes:
         #    s = random.randrange((len(frames) - max_nframes))
         #    frames = frames[s:s+max_nframes]
