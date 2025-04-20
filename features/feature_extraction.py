@@ -311,13 +311,16 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', type=str, default = 'microsoft/TemporalBench')
     parser.add_argument('--use_dataset', action='store_true')
     parser.add_argument('--overwrite', action='store_true')
-    parser.add_argument('--token', type=str, required=True)
+    parser.add_argument('--token', type=str, default=None)
     parser.add_argument('--downsample', action='store_true')
     parser.add_argument('--downsample_method', type=str, default='uniform', help="uniform or mean")
     parser.add_argument('--cutoff_freq', type=float, default=0.2)
     parser.add_argument('--to_tensor', action='store_true')
     parser.add_argument('--use_existing', action='store_true')
     args = parser.parse_args()
+
+    if args.use_dataset:
+        assert args.token is not None
 
     vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, use_dataset=args.use_dataset,feature_root=args.feature_dir, 
                                 batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, use_existing=args.use_existing, access_token=args.token,
