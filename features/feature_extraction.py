@@ -38,8 +38,8 @@ class MAE_Extractor():
         
         frames = video.get(cv2.CAP_PROP_FRAME_COUNT) 
         fps = video.get(cv2.CAP_PROP_FPS) 
-        print(f'FPS: {fps}')
-        #video.set(cv2.CAP_PROP_BUFFERSIZE, 1) # Set buffer size to 1
+        #print(f'FPS: {fps}')
+        video.set(cv2.CAP_PROP_BUFFERSIZE, 1) # Set buffer size to 1
         # calculate duration of the video 
         seconds = round(frames / fps) 
         if seconds < 5:
@@ -47,7 +47,7 @@ class MAE_Extractor():
         
         #max_n_frames 
         max_nframes = int(fps * (5*60))
-        print(max_nframes)
+        #print(max_nframes)
 
 
         frames = [x for x in self._frame_from_video(video)]
