@@ -23,8 +23,11 @@ class MAE_Extractor():
         self.fnum = 16
     
     def _frame_from_video(self,video):
+
         while video.isOpened():
+
             success, frame = video.read()
+            key = cv2.waitKey(1)
             if success:
                 yield frame
             else:
@@ -35,8 +38,8 @@ class MAE_Extractor():
         
         frames = video.get(cv2.CAP_PROP_FRAME_COUNT) 
         fps = video.get(cv2.CAP_PROP_FPS) 
-        
-        print('Video opened')
+        print(f'FPS: {fps}')
+        #video.set(cv2.CAP_PROP_BUFFERSIZE, 1) # Set buffer size to 1
         # calculate duration of the video 
         seconds = round(frames / fps) 
         if seconds < 5:
@@ -47,8 +50,8 @@ class MAE_Extractor():
         print(max_nframes)
 
 
-        print('Getting frames')
         frames = [x for x in self._frame_from_video(video)]
+        video.release()
         print('Finished getting frames')
         if len(frames) > max_nframes:
             s = random.randrange((len(frames) - max_nframes))
