@@ -214,11 +214,11 @@ if __name__ == "__main__":
     print(f'Val size: {len(val_files)}')
     print(f'Test size: {len(test_files)}')
 
-
+    test_files = train_files + val_files
     # SET UP DATASETS/DATALOADERS
     train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=train_files, feature_root=args.feat_dir, to_tensor=True)
     val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,split=val_files, feature_root=args.feat_dir, to_tensor=True)
-    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, feature_root=args.feat_dir, to_tensor=True)
+    test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
 
     if not args.eval_only:
         assert not bool(set(train_dataset.files) & set(val_dataset.files)), 'Overlapping files between train and validation set.'
@@ -241,6 +241,7 @@ if __name__ == "__main__":
                         'residual':args.residual, 'exclude_final_norm':args.exclude_final_norm, 'exclude_all_norm':args.exclude_all_norm, 'n_filters':args.n_filters}
 
     if args.eval_only:
+        args.inner_size = model_config['inner_size']
         args.lr = model_config['learning_rate']
         args.epochs = model_config['epochs']
         args.batch_sz = model_config['batch_sz']
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         args.n_filters = model_config['n_filters']
         ##NTAPS CUTOFF FREQ
 
-    name_str =  f'model_e{args.n_encoder}_iek{args.initial_ekernel}_d{args.n_decoder}_idk{args.initial_dkernel}_lr{args.lr}e{args.epochs}bs{args.batch_sz}_{args.optimizer}_{args.reconstruction_loss}_{args.encoding_loss}'
+    name_str =  f'model_innersz{args.inner_size}_e{args.n_encoder}_iek{args.initial_ekernel}_d{args.n_decoder}_idk{args.initial_dkernel}_lr{args.lr}e{args.epochs}bs{args.batch_sz}_{args.optimizer}_{args.reconstruction_loss}_{args.encoding_loss}'
     if args.encoding_loss == 'filter':
         name_str += f'c{args.cutoff_freq}n{args.n_taps}'
         if args.residual:
@@ -334,4 +335,4 @@ if __name__ == "__main__":
     
     print('Saving results to:', save_path)
     metrics = evaluate(test_loader=test_loader, maxt=test_dataset.maxt, model=model, save_path=save_path, device=device, 
-                       encode=args.encode, decode=args.decode,n_filters=args.n_filters,ntaps=args.n_taps)
+                       encode=args.encode, decode=args.decode, n_filters=args.n_filters,ntaps=args.n_taps)
