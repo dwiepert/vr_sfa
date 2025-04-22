@@ -95,8 +95,8 @@ if __name__ == "__main__":
                         help='Path to directory with training data.')
     parser.add_argument('--video_dir', type=str, required=True,
                         help='Path to directory with training data.')
-    parser.add_argument("--train_ratio", type=float, default=.8)
-    parser.add_argument("--val_ratio", type=float, default=.2)
+    parser.add_argument("--train_ratio", type=float, default=.9)
+    parser.add_argument("--val_ratio", type=float, default=.1)
     parser.add_argument('--out_dir', type=str, required=True,
                         help="Specify a local directory to save configuration files to. If not saving features to corral, this also specifies local directory to save files to.")
     parser.add_argument("--encode", action="store_true", 
