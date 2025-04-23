@@ -206,7 +206,11 @@ if __name__ == "__main__":
     print('Loading features from local filesystem.')
 
     #### GET DATA SPLITS
-    paths = args.feat_dir.rglob('*npz')
+    paths1 = args.feat_dir.rglob('*.npz')
+    paths2 = args.feat_dir.rglob('*.npy')
+    paths1 = [p for p in paths1]
+    paths2 = [p for p in paths2]
+    paths = paths1 + paths2
     ds = DatasetSplitter(paths = paths, train_ratio=args.train_ratio, val_ratio=args.val_ratio)
     train_files, val_files, test_files = ds.split_paths()
 
