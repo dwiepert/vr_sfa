@@ -190,7 +190,7 @@ class Downsample():
         return output_array
     
 class VideoDataset(Dataset):
-    def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, access_token:str=None, 
+    def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, features:Dict[str,np.ndarray]=None, access_token:str=None, 
                  feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False, use_existing:bool=False,
                  downsample:bool=False, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
@@ -206,7 +206,10 @@ class VideoDataset(Dataset):
         self.feature_root = Path(feature_root)
         self.feature_root.mkdir(parents=True, exist_ok=True)
         self.split = split
-        self.features = {}
+        if features is None:
+            self.features = {}
+        else:
+            self.features = features
         self.overwrite = overwrite
         self.downsample = downsample
         self.to_tensor = to_tensor
@@ -214,7 +217,8 @@ class VideoDataset(Dataset):
         self.use_existing=use_existing
         
         print('Loading features...')
-        self._load_features()
+        if features is None:
+            self._load_features()
         if not self.use_existing:
             self.extractor = MAE_Extractor(ckpt=ckpt, batch_size=batch_size)
             self._extract_features() 
@@ -236,9 +240,6 @@ class VideoDataset(Dataset):
         self.transforms = torchvision.transforms.Compose(transforms)
         
         self._get_maxt()
-
-        s = self.features[self.files[0]].shape
-        print(f'Feature shape: {s}')
 
     def _load_features(self):
         paths1 = sorted(list(self.feature_root.rglob('*.npz')))
