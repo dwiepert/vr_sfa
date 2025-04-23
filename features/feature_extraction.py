@@ -6,13 +6,10 @@ import numpy as np
 from pathlib import Path
 import torch
 import torchvision
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
-import random
-from timm.models import create_model
-import models
-from loader import get_video_loader
+
 
 
 class MAE_Extractor():
