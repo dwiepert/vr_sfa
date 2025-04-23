@@ -244,10 +244,13 @@ class VideoDataset(Dataset):
         print(f'Feature shape: {s}')
 
     def _load_features(self):
-        paths = sorted(list(self.feature_root.rglob('*.npz')))
+        paths1 = sorted(list(self.feature_root.rglob('*.npz')))
         paths2 = sorted(list(self.feature_root.rglob('*.npy')))
-        paths = paths + paths2
-        paths = [p for p in paths if str(self.feature_root) in str(p)]
+        paths1 = [p for p in paths1 if str(self.feature_root) in str(p)]
+        paths2 = [p for p in paths2 if str(self.feature_root) in str(p)]
+
+        paths = paths1 + paths2 
+        print(len(paths))
 
         for f in paths:
             l = np.load(f)
