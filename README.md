@@ -23,23 +23,41 @@ $ pip install .
 
 
 ## Benchmarking (Vivian + Macy)
-1. download TemporalBench dataset
-2. initialize model and write inference code in `eval/sfa_inference.py` (see `eval/llava-onevision.py` for example)
-   check repo https://github.com/mu-cai/TemporalBench/tree/main for more reference.
-3. run like
-    ```bash
-    CUDA_VISIBLE_DEVICES=0 python eval/llava-onevision.py --data_json temporalbench_short_qa.json
-    CUDA_VISIBLE_DEVICES=1 python eval/llava-onevision.py --data_json temporalbench_long_qa.json
-    CUDA_VISIBLE_DEVICES=2 python eval/llava-onevision.py --data_json temporalbench_short_caption.json
-    ```
-4. Get scores like
-    ```bash
-    # for QA
-    python get_qa_acc.py --data_json temporalbench_short_qa.json
-    python get_qa_acc.py --data_json temporalbench_long_qa.json
-    # for captioning
-    python get_captioning_score.py 
-    ```
+1. clone ActionFormer repo and download data
+```
+git clone https://github.com/happyharrycn/actionformer_release.git
+wget https://huggingface.co/datasets/OpenGVLab/VideoMAEv2-TAL-Features/resolve/main/th14_mae_g_16_4.tar.gz
+gdown --id 1zt2eoldshf99vJMDuu8jqxda55dCyhZP
+tar -xf th14_mae_g_16_4.tar.gz
+tar -xf thumos.tar.gz
+```
+you can also download the THUMOS features from [here](https://drive.google.com/file/d/1zt2eoldshf99vJMDuu8jqxda55dCyhZP/view?usp=sharing)
 
+
+2. add and modify some files
+```
+mv thumos_mae.yaml actionformer_release/configs
+rm actionformer_release/libs/utils/metrics.py
+mv metrics.py actionformer_release/libs/utils
+rm actionformer_release/libs/utils/train_utils.py
+mv train_utils.py actionformer_release/libs/utils
+```
+
+3. ActionFormer setup
+```
+cd actionformer_release/libs/utils
+python setup.py install --user
+```
+
+4. run train/eval
+```
+cd actionformer_release
+python train.py configs/thumos_mae.yaml --output maefeatures
+python eval.py ./configs/thumos_mae.yaml ./ckpt/thumos_mae_maefeatures
+```
+
+reference: 
+- https://github.com/OpenGVLab/VideoMAEv2/blob/master/docs/TAD.md
+- https://github.com/happyharrycn/actionformer_release/tree/main?tab=readme-ov-file#to-reproduce-our-results-on-thumos14
 
     https://github.com/OpenGVLab/InternVideo/tree/main/InternVideo2/single_modality

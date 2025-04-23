@@ -8,3 +8,6 @@ features/f.py
 /model_features
 /models
 features/th14_mae_g_16_4.tar.gz
+th14_mae_g_16_4.tar.gz
+thumos.tar.gz
+actionformer_release/
