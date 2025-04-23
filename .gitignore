@@ -1,3 +1,10 @@
 runs.txt
 helper.py
 .DS_Store
+features/fineaction_mae_g.tar.gz
+features/modeling_internvideo2.py
+features/loader.py
+features/f.py
+/model_features
+/models
+features/th14_mae_g_16_4.tar.gz

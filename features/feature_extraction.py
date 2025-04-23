@@ -10,6 +10,10 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
 import random
+from timm.models import create_model
+import models
+from loader import get_video_loader
+
 
 class MAE_Extractor():
 
@@ -189,7 +193,7 @@ class Downsample():
         return output_array
     
 class VideoDataset(Dataset):
-    def __init__(self, video_root:Path=Path("/mnt/data/dwiepert/data/temporalbench"), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, access_token:str=None, 
+    def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, access_token:str=None, 
                  feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False, use_existing:bool=False,
                  downsample:bool=False, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
@@ -241,12 +245,17 @@ class VideoDataset(Dataset):
 
     def _load_features(self):
         paths = sorted(list(self.feature_root.rglob('*.npz')))
+        paths2 = sorted(list(self.feature_root.rglob('*.npy')))
+        paths = paths + paths2
         paths = [p for p in paths if str(self.feature_root) in str(p)]
 
         for f in paths:
             l = np.load(f)
-            key = list(l)[0]
-            loaded = l[key]
+            if '.npz' in str(f):
+                key = list(l)[0]
+                loaded = l[key]
+            else:
+                loaded = l
             self.features[str(f)]= loaded
             del loaded
             del l
