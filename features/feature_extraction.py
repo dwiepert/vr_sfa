@@ -324,6 +324,7 @@ class VideoDataset(Dataset):
         self.use_existing=use_existing
         
         print('Loading features...')
+        st = time.time()
         if features is None:
             self._load_features()
         if not self.use_existing:
@@ -334,7 +335,8 @@ class VideoDataset(Dataset):
         if self.split is not None:
             self._split_features()
         print('Features loaded.')
-
+        et = time.time()
+        print(f'Loading time: {et-st} s')
         self.files = list(self.features.keys())
         print(f'# of files: {len(self.files)}')
 
