@@ -41,7 +41,8 @@ class residualPCA(BaseModel):
         #for f in self.fnames:
         #     save = save_path / 'emawav'
         #     self.result_paths['emawav'][f] = save / f
-
+        np.random.shuffle(self.iv)
+        print(self.iv.shape)
         self._check_previous()
         self._fit()
     
