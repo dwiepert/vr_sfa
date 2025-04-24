@@ -29,11 +29,11 @@ class residualPCA(BaseModel):
     :param local_path: path like, path to save config to locally if save_path is not local
     """
     def __init__(self, iv:Dict[str,np.ndarray], iv_type:str, save_path:Union[str,Path], n_components:int=13,
-                 cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None):
+                 cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None, keep:int=1000):
         
         self.n_components = n_components
         super().__init__(model_type='pca', iv=iv, iv_type=iv_type, dv=iv, dv_type=iv_type, 
-                            config={'n_components':self.n_components}, save_path=save_path, cci_features=cci_features, overwrite=overwrite, local_path=local_path)
+                            config={'n_components':self.n_components}, save_path=save_path, cci_features=cci_features, overwrite=overwrite, local_path=local_path, keep=keep)
 
         #new_path = self.save_path / 'model'
         #self.result_paths['weights']= new_path /'weights'
@@ -444,8 +444,28 @@ if __name__ == "__main__":
                                 iv_type='videomaev2g',
                                 save_path=args.save_path,
                                 n_components=args.n_components,
-                                overwrite=args.overwrite
+                                overwrite=args.overwrite, keep=1000
                                 )
+    
+    print('Model Trained')
+
+    model2 = residualPCA(iv=feats,
+                                iv_type='videomaev2g',
+                                save_path=args.save_path,
+                                n_components=args.n_components,
+                                overwrite=args.overwrite, keep=2000
+                                )
+    
+     print('Model Trained')
+
+    model3 = residualPCA(iv=feats,
+                                iv_type='videomaev2g',
+                                save_path=args.save_path,
+                                n_components=args.n_components,
+                                overwrite=args.overwrite, keep=5000
+                                )
+    
+
     
     """ for k in tqdm(list(feats.keys())):
         pk = Path(k).with_suffix("")

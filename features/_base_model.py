@@ -46,14 +46,14 @@ class BaseModel:
     :param local_path: path like, path to save config to locally if save_path is not local
     """
     def __init__(self, model_type:str, iv:Dict[str,Dict[str,np.ndarray]], iv_type:str, dv:Dict[str,Dict[str,np.ndarray]], dv_type:str, config:dict, 
-                 save_path:Union[str,Path], cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None):
+                 save_path:Union[str,Path], cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None, keep:int=1000):
         
         self.model_type = model_type
         self.iv_type = iv_type
         self.dv_type = dv_type
         self.fnames = list(iv.keys())
         random.shuffle(self.fnames)
-        self.fnames = self.fnames[:1000]
+        self.fnames = self.fnames[:keep]
         self.overwrite=overwrite
 
         self.iv, self.iv_rows = self._process_features(iv)
