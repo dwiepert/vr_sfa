@@ -19,7 +19,7 @@ from torch.utils.data import DataLoader
 ##local
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
-from feature_extraction import VideoDataset
+from feature_extraction import VideoDataset, residualPCA
 
 
 def custom_collatefn(batch) -> torch.tensor:
@@ -224,6 +224,7 @@ if __name__ == "__main__":
     # SET UP DATASETS/DATALOADERS
     test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
     feats = test_dataset.features
+    
     train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, features=feats, split=train_files, feature_root=args.feat_dir, to_tensor=True)
     val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,features=feats, split=val_files, feature_root=args.feat_dir, to_tensor=True)
     

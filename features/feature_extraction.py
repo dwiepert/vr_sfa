@@ -9,8 +9,87 @@ import torchvision
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import json
+import os
+##local
+from _base_model import BaseModel
 
 
+
+class residualPCA(BaseModel):
+    """
+    :param iv: dict, independent variable(s), keys are stimulus names, values are array like features
+    :param iv_type: str, type of feature for documentation purposes
+    :param save_path: path like, path to save features to (can be cc path or local path)
+    :param zscore: bool, indicate whether to zscore
+    :param cci_features: cotton candy interface for saving
+    :param overwrite: bool, indicate whether to overwrite values
+    :param local_path: path like, path to save config to locally if save_path is not local
+    """
+    def __init__(self, iv:Dict[str,np.ndarray], iv_type:str, save_path:Union[str,Path], n_components:int=13,
+                 cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None):
+        
+        self.n_components = n_components
+        super().__init__(model_type='pca', iv=iv, iv_type=iv_type, dv=iv, dv_type=iv_type, 
+                            config={'n_components':self.n_components}, save_path=save_path, cci_features=cci_features, overwrite=overwrite, local_path=local_path)
+
+        #new_path = self.save_path / 'model'
+        #self.result_paths['weights']= new_path /'weights'
+        #self.result_paths['emawav'] = {}
+        #for f in self.fnames:
+        #     save = save_path / 'emawav'
+        #     self.result_paths['emawav'][f] = save / f
+
+        self._check_previous()
+        self._fit()
+    
+    def _fit(self):
+        """
+        Fit PCA
+        """
+        if self.weights_exist and not self.overwrite:
+            print('Model already fitted and should not be overwritten')
+        else:
+            self.scaler = StandardScaler().fit(self.iv)
+            self.model = PCA(n_components=self.n_components)
+            self.model.fit(self.scaler.transform(self.iv))
+
+            self._save_model(self.model, self.scaler)
+            eval = {'explained_variance_ratio':[float(f) for f in list(self.model.explained_variance_ratio_)]}
+            os.makedirs(str(self.result_paths['train_eval'].parent), exist_ok=True)
+            with open(str(self.result_paths['train_eval'])+'.json', 'w') as f:
+                json.dump(eval, f)
+    
+    def score(self, feature, fname:str) -> tuple[np.ndarray, Dict[str,np.ndarray]]:
+        """
+        Extract PCA features
+
+        :param feats: dict, feature dictionary, stimulus names as keys
+        :param ref_feats: dict, feature dictionary of ground truth predicted features, stimulus names as keys
+        :param fname: str, name of stimulus to extract for
+        :return pca: extracted pca features
+        :return: Dictionary of true and predicted values 
+        """
+        #if self.cci_features is not None:
+        #    if self.cci_features.exists_object(self.result_paths['metric'][fname]) and not self.overwrite:
+        #        return 
+        #else:
+        #    if Path(str(self.result_paths['metric'][fname]) + '.npz').exists() and not self.overwrite:
+        #        return 
+        
+        assert self.model is not None, 'PCA has not been run yet. Please do so.'
+        
+        f = np.squeeze(np.swapaxes(feature, 1,2))
+
+        pca = self.model.transform(self.scaler.transform(f))
+
+        save_pca = np.expand_dims(np.swapaxes(pca, 0,1),0)
+        self._save_metrics(save_pca, fname, 'metric')
+       
+
+        return pca
 
 class MAE_Extractor():
 
@@ -346,17 +425,34 @@ if __name__ == "__main__":
     parser.add_argument('--cutoff_freq', type=float, default=0.2)
     parser.add_argument('--to_tensor', action='store_true')
     parser.add_argument('--use_existing', action='store_true')
+    parser.add_argument('--save_path', type=Path, default='')
+    parser.add_argument('--n_components', type=int, default=50)
     args = parser.parse_args()
 
+    args.save_path = Path(args.save_path)
     if args.use_dataset:
         assert args.token is not None
 
-    vid_features = VideoDataset(video_root=args.root_dir, dataset=args.dataset, use_dataset=args.use_dataset,feature_root=args.feature_dir, 
-                                batch_size=args.batch_sz, ckpt=args.model_ckpt, overwrite=args.overwrite, use_existing=args.use_existing, access_token=args.token,
-                                downsample=args.downsample, downsample_method=args.downsample_method, cutoff_freq=args.cutoff_freq,
+    vid_features = VideoDataset(video_root=args.root_dir, use_dataset=False,feature_root=args.feature_dir, 
+                                batch_size=args.batch_sz, overwrite=args.overwrite, use_existing=True,
+                                downsample=args.downsample, downsample_method=args.downsample_method,
                                 to_tensor=args.to_tensor)
+    
+    feats = vid_features.features
+    model = residualPCA(iv=feats,
+                                iv_type='videomaev2g',
+                                save_path=args.save_path,
+                                n_components=args.n_components,
+                                overwrite=args.overwrite
+                                )
+    
+    for k in tqdm(list(feats.keys())):
+        pk = Path(k).with_suffix("")
+        bn = pk.name
+        par = pk.parent.name 
+        fname = os.path.join(par, bn)
+        _ = model.score(feats[k], fname)
 
-    vid_features.__getitem__(0)
     # example
     """
     vid_loader = DataLoader(vid_features, batch_size=1)
