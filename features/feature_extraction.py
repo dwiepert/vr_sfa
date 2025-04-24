@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 import torch
 import torchvision
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
 from sklearn.decomposition import PCA
@@ -18,6 +18,29 @@ import time
 from _base_model import BaseModel
 
 
+def collatefn(batch) -> np.ndarray:
+    """
+    Custom collate function to put batch together 
+
+    :param batch: batch from DataLoader object
+    :return: collated batch in proper format
+    """
+    warnings.filterwarnings("ignore")
+
+    feat_list = []
+    file_list = []
+    max_t = 0
+    for b in batch:
+       # f = torch.transpose(b['features'],0,1)
+       # if f.shape[-1] > max_t:
+        #    max_t = f.shape[-1]
+
+        feat_list.append(np.squeeze(b['features']))
+        file_list.append(b['files'])
+
+
+
+    return {'features':np.stack(feat_list), 'files':file_list}
 
 class residualPCA(BaseModel):
     """
@@ -448,36 +471,41 @@ if __name__ == "__main__":
                                 iv_type='videomaev2g',
                                 save_path=args.save_path,
                                 n_components=args.n_components,
-                                overwrite=args.overwrite, keep=1000
+                                overwrite=args.overwrite, keep=1000 #len(list(feats.keys()))
                                 )
     
-    print('Model Trained')
+    #print('Model Trained')
 
-    model2 = residualPCA(iv=feats,
-                                iv_type='videomaev2g',
-                                save_path=args.save_path,
-                                n_components=args.n_components,
-                                overwrite=args.overwrite, keep=2000
-                                )
+    #model2 = residualPCA(iv=feats,
+                                # iv_type='videomaev2g',
+                                # save_path=args.save_path,
+                                # n_components=args.n_components,
+                                # overwrite=args.overwrite, keep=2000
+                                # )
     
-    print('Model Trained')
+    #print('Model Trained')
 
-    model3 = residualPCA(iv=feats,
-                                iv_type='videomaev2g',
-                                save_path=args.save_path,
-                                n_components=args.n_components,
-                                overwrite=args.overwrite, keep=5000
-                                )
+    #model3 = residualPCA(iv=feats,
+                                # iv_type='videomaev2g',
+                                # save_path=args.save_path,
+                                # n_components=args.n_components,
+                                # overwrite=args.overwrite, keep=5000
+                                # )
     
 
     print('Model Trained')
 
-    """ for k in tqdm(list(feats.keys())):
+
+    loader = DataLoader(vid_dataset, batch_size=1, shuffle=True, num_workers=4, collate_fn=collatefn)
+    for data in tqdm(loader):
+        k = data['files'][0]
+        feats = data['features']
+        print(feats.shape)
         pk = Path(k).with_suffix("")
         bn = pk.name
         par = pk.parent.name 
         fname = os.path.join(par, bn)
-        _ = model.score(feats[k], fname) """
+        _ = model.score(feats, fname)
 
     # example
     """
