@@ -116,24 +116,24 @@ class BaseModel:
         :return concat_times: np.ndarray, concatenated tiems array
         """
         nrows = {}
-        #concat = np.concat(list(feat.values()))
+        concat = np.concat(list(feat.values()))
         #print(concat.shape)
-        concat = None 
-        for f in self.fnames:
-            #print(feat[f].shape)
-            n = feat[f] #np.squeeze(np.swapaxes(feat[f], 1,2))
-            if concat is None:
-                concat = n 
-                start_ind = 0
-            else:
-                if n.ndim ==1:
-                    concat = np.concatenate((concat, n))
-                else:
-                    concat = np.vstack((concat, n))
-                start_ind = concat.shape[0]-1
+        # concat = None 
+        # for f in self.fnames:
+        #     #print(feat[f].shape)
+        #     n = feat[f] #np.squeeze(np.swapaxes(feat[f], 1,2))
+        #     if concat is None:
+        #         concat = n 
+        #         start_ind = 0
+        #     else:
+        #         if n.ndim ==1:
+        #             concat = np.concatenate((concat, n))
+        #         else:
+        #             concat = np.vstack((concat, n))
+        #         start_ind = concat.shape[0]-1
             
-            end_ind = start_ind + n.shape[0]
-            nrows[f] = [start_ind, end_ind]
+        #     end_ind = start_ind + n.shape[0]
+        #     nrows[f] = [start_ind, end_ind]
         return concat, nrows
 
     def _unprocess_features(self, concat:np.ndarray, nrows: Dict[str,list]) -> Dict[str,np.ndarray]:
