@@ -447,12 +447,12 @@ if __name__ == "__main__":
                                 overwrite=args.overwrite
                                 )
     
-    for k in tqdm(list(feats.keys())):
+    """ for k in tqdm(list(feats.keys())):
         pk = Path(k).with_suffix("")
         bn = pk.name
         par = pk.parent.name 
         fname = os.path.join(par, bn)
-        _ = model.score(feats[k], fname)
+        _ = model.score(feats[k], fname) """
 
     # example
     """
