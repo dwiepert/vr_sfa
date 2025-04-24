@@ -456,7 +456,7 @@ if __name__ == "__main__":
                                 overwrite=args.overwrite, keep=2000
                                 )
     
-     print('Model Trained')
+    print('Model Trained')
 
     model3 = residualPCA(iv=feats,
                                 iv_type='videomaev2g',
@@ -466,6 +466,7 @@ if __name__ == "__main__":
                                 )
     
 
+    print('Model Trained')
     
     """ for k in tqdm(list(feats.keys())):
         pk = Path(k).with_suffix("")
