@@ -116,7 +116,7 @@ class BaseModel:
         concat = None 
         for f in self.fnames:
             print(feat[f].shape)
-            n = np.squeeze(np.swapaxes(feat[f], 1,2))
+            n = feat[f] #np.squeeze(np.swapaxes(feat[f], 1,2))
             if concat is None:
                 concat = n 
                 start_ind = 0
