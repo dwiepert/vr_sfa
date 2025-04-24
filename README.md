@@ -1,15 +1,10 @@
 # VR SFA
 
 ## Feature Loading
-1. download TemporalBench dataset
-2. Run feature_extraction.py and minimally run with:
-``` python feature_extraction.py --root_dir=<PATH_TO_HIGHEST_VIDEO_DIRECTORY> --feature_dir=<PATH_TO_SAVE_FEATURES_TO> --token=<HUGGINGFACE_ACCESS_TOKEN> ```
-This will run it with an extraction batch size of 16 and for VideoMAEv2-Large on the temporal bench dataset. You can also set `--overwrite` to re-extract features. One final thing to consider is `--use_dataset` for when you're using the dataset to load features. 
-
-This can be used to both extract features (if features don't exist it will save them out) and load features. The features will be of size (t, feature_dim).
-
-*NOTE: DOWNSAMPLING
-To trigger downsampling with default features, use `--downsample` in the command. I only recommend potentially changing `--downsample_type` from uniform to mean as an ablation/test case. 
+1. download pre-computed features from [VideoMAEv2/TAD.md](https://github.com/OpenGVLab/VideoMAEv2/blob/master/docs/TAD.md)
+2. Load in features with [VideoDataset](https://github.com/dwiepert/vr_sfa/features/feature_extraction.py).
+    * can Downsample with `downsample`=True and `downsample_method` = ['uniform','mean']
+    * if you need outputs as tensors, use `to_tensor`=True
 
 ## Training SFA
 Install `emaae` package:
@@ -20,6 +15,21 @@ $ git clone https://github.com/dwiepert/emaae.git
 $ cd emaae
 $ pip install . 
 ```
+
+Minimally run training with:
+```
+python sfa_model.py --feat_dir=<PATH_TO_FEATURE_DIR> --out_dir=<PATH_TO_SAVE> --input_dim=1408 --inner_size=<1408_OR_2048> \
+ --n_encoder=<2_OR_3> --n_decoder=<2_OR_3> <--exclude_all_norm OR --batchnorm_first> \
+ --batch_sz=<INT> --epochs=<INT> --lr=<FLOAT> --alpha=0.001 --early_stop --encoding_loss=tvl2 --skip_eval
+```
+
+Run evaluation for a different feature set with:
+```
+python sfa_model.py --feat_dir=<PATH_TO_FEATURE_DIR> \
+ --out_dir=<PATH_TO_SAVE> --model_config=<PATH_TO_model_config.json> \
+ --checkpoint=<PATH_TO_.pth_FILE> --encode --eval_only 
+```
+
 
 
 ## Benchmarking (Vivian + Macy)

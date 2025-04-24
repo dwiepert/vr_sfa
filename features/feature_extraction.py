@@ -190,8 +190,8 @@ class Downsample():
         return output_array
     
 class VideoDataset(Dataset):
-    def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=True, split:List[Path] = None, features:Dict[str,np.ndarray]=None, access_token:str=None, 
-                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False, use_existing:bool=False,
+    def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=False, split:List[Path] = None, features:Dict[str,np.ndarray]=None, access_token:str=None, 
+                 feature_root:Path=Path("/mnt/data/dwiepert/data/video_features"), batch_size:int=16, ckpt:str="OpenGVLab/VideoMAEv2-Large", overwrite:bool=False, use_existing:bool=True,
                  downsample:bool=False, to_tensor:bool=False, cutoff_freq:float=0.2, downsample_method:str="uniform"):
         print('Loading dataset metadata ...')
         self.video_root = Path(video_root)
