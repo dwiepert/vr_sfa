@@ -173,6 +173,8 @@ if __name__ == "__main__":
                                 help='Specify whether to add an lr scheduler')
     train_args.add_argument('--end_lr', type=float, default=0.0001,
                                 help='Specify goal end learning rate.')
+    train_args.add_argument('--skip_eval', action='store_true')
+    
 
     args = parser.parse_args()
 
@@ -338,7 +340,7 @@ if __name__ == "__main__":
         torch.save(model.state_dict(), str(mpath / f'{model.get_type()}_final.pth'))
     
     #Evaluate
-    
-    print('Saving results to:', save_path)
-    metrics = evaluate(test_loader=test_loader, maxt=test_dataset.maxt, model=model, save_path=save_path, device=device, 
-                       encode=args.encode, decode=args.decode, n_filters=args.n_filters,ntaps=args.n_taps)
+    if not args.skip_eval:
+        print('Saving results to:', save_path)
+        metrics = evaluate(test_loader=test_loader, maxt=test_dataset.maxt, model=model, save_path=save_path, device=device, 
+                        encode=args.encode, decode=args.decode, n_filters=args.n_filters,ntaps=args.n_taps)
