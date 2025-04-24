@@ -13,6 +13,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import json
 import os
+import time 
 ##local
 from _base_model import BaseModel
 
@@ -44,7 +45,10 @@ class residualPCA(BaseModel):
         np.random.shuffle(self.iv)
         print(self.iv.shape)
         self._check_previous()
+        st = time.time()
         self._fit()
+        et = time.time()
+        print(f'Model fit in {et-st} s')
     
     def _fit(self):
         """
@@ -467,7 +471,7 @@ if __name__ == "__main__":
     
 
     print('Model Trained')
-    
+
     """ for k in tqdm(list(feats.keys())):
         pk = Path(k).with_suffix("")
         bn = pk.name
