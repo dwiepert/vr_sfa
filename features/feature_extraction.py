@@ -156,7 +156,7 @@ class Downsample():
         """
         temp = sample['features']
         if self.method == 'uniform':
-            temp = temp[::self.step_size]
+            temp = temp[:,:,::self.step_size]
         elif self.method == 'mean':
             temp = self._mean_pooling(temp)
         sample['features'] = temp
@@ -164,7 +164,7 @@ class Downsample():
 
     def _mean_pooling(self, input_array):
         """
-            Performs mean pooling on a 2D NumPy array.
+            Performs mean pooling on a 3D NumPy array.
 
             Args:
                 input_array (numpy.ndarray): The input array.
@@ -175,17 +175,17 @@ class Downsample():
             Returns:
                 numpy.ndarray: The pooled output array.
         """
-        input_height, input_width = input_array.shape
+        batch, input_height, input_width = input_array.shape
         padded_array = input_array
-        output_height = (input_height - self.step_size) // self.step_size + 1
-        output_width = input_width
+        output_width = (input_width - self.step_size) // self.step_size + 1
+        output_height = input_height
 
-        output_array = np.zeros((output_height, output_width))
+        output_array = np.zeros((batch, output_height, output_width))
 
-        for i in range(output_height):
+        for i in range(output_width):
             start_row = i * self.step_size
             end_row = start_row + self.step_size
-            output_array[i,:] = np.mean(padded_array[start_row:end_row, :])
+            output_array[:,:,i] = np.mean(padded_array[:,:,start_row:end_row],axis=2)
 
         return output_array
     
@@ -356,6 +356,7 @@ if __name__ == "__main__":
                                 downsample=args.downsample, downsample_method=args.downsample_method, cutoff_freq=args.cutoff_freq,
                                 to_tensor=args.to_tensor)
 
+    vid_features.__getitem__(0)
     # example
     """
     vid_loader = DataLoader(vid_features, batch_size=1)

@@ -93,7 +93,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--feat_dir', type=str, required=True,
                         help='Path to directory with training data.')
-    parser.add_argument('--video_dir', type=str, required=True,
+    parser.add_argument('--video_dir', type=str, default='',
                         help='Path to directory with training data.')
     parser.add_argument("--train_ratio", type=float, default=.9)
     parser.add_argument("--val_ratio", type=float, default=.1)
