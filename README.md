@@ -39,8 +39,8 @@ you can also download the THUMOS features from [here](https://drive.google.com/f
 mv thumos_mae.yaml actionformer_release/configs
 rm actionformer_release/libs/utils/metrics.py
 mv metrics.py actionformer_release/libs/utils
-rm actionformer_release/libs/utils/train_utils.py
-mv train_utils.py actionformer_release/libs/utils
+rm actionformer_release/eval.py
+mv eval.py actionformer_release/
 ```
 
 3. ActionFormer setup
