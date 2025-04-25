@@ -247,9 +247,10 @@ class residualPCA():
         f = feature
 
         pca = self.model.transform(self.scaler.transform(f))
+        print(pca.shape)
 
-        save_pca = np.expand_dims(np.swapaxes(pca, 0,1),0)
-        self._save_metrics(save_pca, fname, 'metric')
+        #save_pca = np.expand_dims(np.swapaxes(pca, 0,1),0)
+        self._save_metrics(pca, fname, 'metric')
        
 
         return pca
