@@ -51,6 +51,8 @@ rm actionformer_release/libs/utils/metrics.py
 mv metrics.py actionformer_release/libs/utils
 rm actionformer_release/eval.py
 mv eval.py actionformer_release/
+rm actionformer_release/libs/datasets/thumos14.py
+mv thumos14.py actionformer_release/libs/datasets/
 ```
 
 3. ActionFormer setup
@@ -59,7 +61,9 @@ cd actionformer_release/libs/utils
 python setup.py install --user
 ```
 
-4. run train/eval
+4. adjust config file: dataset.json_file and dataset.feat_folder for sure. dataset.input_dim and dataset.file_ext may also be of interest to you. also, when we benchmark TAL on FineAction, that may require more extreme changes
+
+5. run train/eval
 ```
 cd actionformer_release
 python train.py configs/thumos_mae.yaml --output maefeatures
