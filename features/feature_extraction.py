@@ -534,6 +534,7 @@ class VideoDataset(Dataset):
         self.transforms = torchvision.transforms.Compose(transforms)
         
         self._get_maxt()
+        print(self.features[self.files[0]].shape)
 
     def _load_features(self):
         paths1 = sorted(list(self.feature_root.rglob('*.npz')))
