@@ -224,7 +224,7 @@ if __name__ == "__main__":
     # SET UP DATASETS/DATALOADERS
     test_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, split=test_files, feature_root=args.feat_dir, to_tensor=True)
     feats = test_dataset.features
-    
+
     train_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True, features=feats, split=train_files, feature_root=args.feat_dir, to_tensor=True)
     val_dataset = VideoDataset(video_root=args.video_dir, dataset="", use_dataset=False, use_existing=True,features=feats, split=val_files, feature_root=args.feat_dir, to_tensor=True)
     
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         #assert not bool(set(train_dataset.files) & set(test_dataset.files)), 'Overlapping files between train and test set.'
         #assert not bool(set(test_dataset.files) & set(val_dataset.files)), 'Overlapping files between val and test set.'
     
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_sz, shuffle=True, num_workers=4, collate_fn=custom_collatefn)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_sz, shuffle=True, num_workers=0, collate_fn=custom_collatefn)
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn)
 

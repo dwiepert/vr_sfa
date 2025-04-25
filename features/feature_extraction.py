@@ -11,9 +11,13 @@ from tqdm import tqdm
 from transformers import VideoMAEImageProcessor, AutoModel, AutoConfig
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV
+from sklearn.decomposition import PCA
 import json
 import os
 import time 
+import random
+import pickle
 ##local
 from _base_model import BaseModel
 
@@ -25,12 +29,12 @@ def collatefn(batch) -> np.ndarray:
     :param batch: batch from DataLoader object
     :return: collated batch in proper format
     """
-    warnings.filterwarnings("ignore")
 
     feat_list = []
     file_list = []
     max_t = 0
     for b in batch:
+        assert len(batch)==1
        # f = torch.transpose(b['features'],0,1)
        # if f.shape[-1] > max_t:
         #    max_t = f.shape[-1]
@@ -40,9 +44,20 @@ def collatefn(batch) -> np.ndarray:
 
 
 
-    return {'features':np.stack(feat_list), 'files':file_list}
+    return {'features':feat_list[0], 'files':file_list[0]}
 
-class residualPCA(BaseModel):
+def r2_score(true, pred):
+    st = true**2
+    sr = (true-pred)**2
+    sstot = np.sum(st, axis=0)
+    ssres = np.sum(sr, axis=0)
+    r2 = 1 - np.mean(np.divide(ssres, sstot))
+    return r2
+
+def rmse(true, pred):
+    return np.sqrt(np.mean((pred-true)**2))
+
+class residualPCA():
     """
     :param iv: dict, independent variable(s), keys are stimulus names, values are array like features
     :param iv_type: str, type of feature for documentation purposes
@@ -52,27 +67,147 @@ class residualPCA(BaseModel):
     :param overwrite: bool, indicate whether to overwrite values
     :param local_path: path like, path to save config to locally if save_path is not local
     """
-    def __init__(self, iv:Dict[str,np.ndarray], iv_type:str, save_path:Union[str,Path], n_components:int=13,
-                 cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None, keep:int=1000):
+    def __init__(self, iv:Dict[str,np.ndarray], iv_type:str, fnames:List[str], save_path:Union[str,Path], n_components:int=13,
+                 cci_features=None, overwrite:bool=False, local_path:Union[str,Path]=None):
         
         self.n_components = n_components
-        super().__init__(model_type='pca', iv=iv, iv_type=iv_type, dv=iv, dv_type=iv_type, 
-                            config={'n_components':self.n_components}, save_path=save_path, cci_features=cci_features, overwrite=overwrite, local_path=local_path, keep=keep)
+        self.iv_type = iv_type
+        self.model_type='pca'
+        self.overwrite=overwrite
+        self.fnames=fnames
 
+        self.iv = iv
+
+        ## local path
+        self.save_path=Path(save_path)
+        if local_path is None or self.cci_features is None:
+            self.local_path = self.save_path
+        else:
+            self.local_path = Path(local_path)
+        self.cci_features = cci_features
+        if self.cci_features is None:
+            self.local_path = self.save_path
+        else:
+            assert self.local_path is not None, 'Please give a local path to save config files to (json not cotton candy compatible)'
+
+        self.config = self.config = {
+             'iv_type': self.iv_type,'iv_shape': self.iv.shape,
+             'train_fnames': self.fnames, 'overwrite': self.overwrite
+         }
+
+        config_name = self.local_path / f'{self.model_type}_config.json'
+        os.makedirs(self.local_path, exist_ok=True)
+        with open(str(config_name), 'w') as f:
+            json.dump(self.config,f)
+        
+        if self.cci_features is None:
+            self.new_path = self.save_path/'model'
+        else:
+            self.new_path = self.local_path/'model'
+
+        config_name = self.new_path/ f'{self.model_type}_config.json'
+        os.makedirs(self.new_path, exist_ok=True)
+        with open(str(config_name), 'w') as f:
+            json.dump(self.config,f)
+
+        self.result_paths = {'model': self.new_path/'model', 'scaler': self.new_path/'scaler'}
+        
+        self.result_paths['train_eval'] = self.new_path / 'train_eval'
+        self.result_paths['test_eval'] = self.new_path / 'test_eval'
+        self.result_paths['metric'] = {}
+        self.result_paths['eval'] = {}
+        for f in self.fnames:
+            self.result_paths['metric'][f] = self.save_path/f
+            self.result_paths['eval'][f] = self.new_path/f"{f}_eval"
         #new_path = self.save_path / 'model'
         #self.result_paths['weights']= new_path /'weights'
         #self.result_paths['emawav'] = {}
         #for f in self.fnames:
         #     save = save_path / 'emawav'
         #     self.result_paths['emawav'][f] = save / f
-        np.random.shuffle(self.iv)
-        print(self.iv.shape)
+
         self._check_previous()
         st = time.time()
         self._fit()
         et = time.time()
         print(f'Model fit in {et-st} s')
+
+    def _check_previous(self):
+        """
+        Check if previous models exist - for models saved as .pkl and using scalers
+        """
+        self.weights_exist = False
+        if Path(str(self.result_paths['model'])+'.pkl').exists() and Path(str(self.result_paths['scaler'])+'.pkl').exists(): self.weights_exist=True
+
+        if self.weights_exist and not self.overwrite:
+            with open(str(self.result_paths['model'])+'.pkl', 'rb') as f:
+                self.model = pickle.load(f)
+            with open(str(self.result_paths['scaler'])+'.pkl', 'rb') as f:
+                self.scaler = pickle.load(f)
+        else:
+            self.model=None
+            self.scaler=None
+
+    def _save_model(self, model:Union[LogisticRegressionCV, RidgeCV, PCA], scaler:StandardScaler):
+        """
+        Save a trained model/scaler and train evaluation metrics
+
+        :param model: trained model (RidgeCV or LogisticRegressionCV)
+        :param scaler: trained StandardScaler
+        :param eval: dictionary with model evaluation metrics like RMSE and R^2 {str:float}
+        """
+        if self.cci_features:
+            print('Model cannot be saved to cci_features. Saving to local path instead')
+
+        # Save the model to a file using pickle
+        os.makedirs(self.save_path, exist_ok=True)
+        with open(str(self.result_paths['model'])+'.pkl', 'wb') as file:
+            pickle.dump(model, file)
+        with open(str(self.result_paths['scaler'])+'.pkl', 'wb') as file:
+            pickle.dump(scaler, file)
+        
+
+    def _save_metrics(self, metric:Union[np.ndarray,dict], fname:str, name:str='metric'):
+        """
+        Save metrics for a given story
+
+        :param metric: either a numpy array of the correlations,etc. or a dictionary of values
+        """
+        if fname not in self.result_paths[name]:
+            if name == 'eval':
+                self.result_paths[name][fname] = self.new_path / fname
+            else:
+                self.result_paths[name][fname] = self.save_path / fname
+
+        if name == 'eval':
+            os.makedirs(str(self.result_paths['eval'][fname].parent), exist_ok=True)
+            with open(str(self.result_paths['eval'][fname])+'.json', 'w') as f:
+                json.dump(metric,f)
+            return 
+        
+        if self.cci_features:
+            #print('features')
+            self.cci_features.upload_raw_array(self.result_paths[name][fname], metric)
+            #print(self.result_paths['residuals'][fname])
+        else:
+            #print('not features')
+            os.makedirs(self.result_paths[name][fname].parent, exist_ok=True)
+            np.save(str(self.result_paths[name][fname])+'.npy', metric)
     
+    def eval_model(self, true:np.ndarray, pred:np.ndarray) -> Dict[str,float]:
+        """
+        Evaluate a model with R-squared and RMSE
+
+        :param true: np.ndarray, true values
+        :param pred: np.ndarray, predicted values
+        :return metrics: dictionary of values
+        """
+        r2 = r2_score(true, pred)
+        r = rmse(true, pred)
+        #f1 = f1_score(true, pred)
+        metrics = {'r2': float(r2), 'rmse':float(r)}
+        return metrics
+
     def _fit(self):
         """
         Fit PCA
@@ -109,7 +244,7 @@ class residualPCA(BaseModel):
         
         assert self.model is not None, 'PCA has not been run yet. Please do so.'
         
-        f = np.squeeze(np.swapaxes(feature, 1,2))
+        f = feature
 
         pca = self.model.transform(self.scaler.transform(f))
 
@@ -247,7 +382,7 @@ class Identity():
         """
         return sample
     
-class Downsample():
+class Downsample3D():
     """
     """
     def __init__(self, method:str='uniform', step_size:int=5):
@@ -295,6 +430,55 @@ class Downsample():
             output_array[:,:,i] = np.mean(padded_array[:,:,start_row:end_row],axis=2)
 
         return output_array
+
+class Downsample():
+    """
+    """
+    def __init__(self, method:str='uniform', step_size:int=5):
+        self.method = method
+        self.step_size = step_size
+        
+
+    def __call__(self, sample:Dict[str, Union[np.ndarray, torch.Tensor]]) -> Dict[str,torch.Tensor]:
+        """
+        Transform sample
+        :param sample: dict, sample
+        :return sample: dict, transformed sample
+        """
+        temp = sample['features']
+        if self.method == 'uniform':
+            temp = temp[::self.step_size,:]
+        elif self.method == 'mean':
+            temp = self._mean_pooling(temp)
+        sample['features'] = temp
+        return sample
+
+    def _mean_pooling(self, input_array):
+        """
+            Performs mean pooling on a 3D NumPy array.
+
+            Args:
+                input_array (numpy.ndarray): The input array.
+                kernel_size (int): The size of the pooling kernel (both height and width).
+                stride (int, optional): The stride of the pooling operation. If None, it defaults to kernel_size.
+                
+
+            Returns:
+                numpy.ndarray: The pooled output array.
+        """
+        input_height, input_width = input_array.shape
+        padded_array = input_array
+        output_height = (input_height - self.step_size) // self.step_size + 1
+        output_width = input_width
+
+        output_array = np.zeros((output_height, output_width))
+
+        for i in range(output_height):
+            start_row = i * self.step_size
+            end_row = start_row + self.step_size
+            output_array[i,:] = np.mean(padded_array[start_row:end_row,:],axis=0)
+
+        return output_array
     
 class VideoDataset(Dataset):
     def __init__(self, video_root:Path=Path(""), dataset='microsoft/TemporalBench', use_dataset:bool=False, split:List[Path] = None, features:Dict[str,np.ndarray]=None, access_token:str=None, 
@@ -338,6 +522,7 @@ class VideoDataset(Dataset):
         et = time.time()
         print(f'Loading time: {et-st} s')
         self.files = list(self.features.keys())
+        random.shuffle(self.files)
         print(f'# of files: {len(self.files)}')
 
         transforms = [Identity()]
@@ -436,6 +621,20 @@ class VideoDataset(Dataset):
         #print(transformed)
         return transformed
     
+    def get_concatenated_features(self, keep=1000):
+        feat_list = []
+        for i in range(len(self.files)):
+            if i >= keep:
+                break
+            f = self.files[i]
+            sample = {'files':f, 'features': self.features[f]}
+            feats = self.transforms(sample)
+            feat_list.append(feats['features'])
+        
+        feats = np.concat(feat_list)
+        return feats
+
+    
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -463,18 +662,25 @@ if __name__ == "__main__":
     if args.use_dataset:
         assert args.token is not None
 
-    vid_features = VideoDataset(video_root=args.root_dir, use_dataset=False,feature_root=args.feature_dir, 
+    pca_features = VideoDataset(video_root=args.root_dir, use_dataset=False,feature_root=args.feature_dir,
+                                 overwrite=args.overwrite, use_existing=True,
+                                downsample=True, downsample_method='uniform',
+                                to_tensor=False)
+    
+    vid_features = VideoDataset(video_root=args.root_dir, features=pca_features.features, use_dataset=False,feature_root=args.feature_dir, 
                                 batch_size=args.batch_sz, overwrite=args.overwrite, use_existing=True,
                                 downsample=args.downsample, downsample_method=args.downsample_method,
                                 to_tensor=args.to_tensor)
     
-    feats = vid_features.features
+    feats = pca_features.get_concatenated_features(keep=len(vid_features.files))
+
     model = residualPCA(iv=feats,
-                                iv_type='videomaev2g',
-                                save_path=args.save_path,
-                                n_components=args.n_components,
-                                overwrite=args.overwrite, keep=1000 #len(list(feats.keys()))
-                                )
+                        fnames=pca_features.files,
+                        iv_type='videomaev2g',
+                        save_path=args.save_path,
+                        n_components=args.n_components,
+                        overwrite=args.overwrite #len(list(feats.keys()))
+                        )
     
     #print('Model Trained')
 
@@ -498,16 +704,15 @@ if __name__ == "__main__":
     print('Model Trained')
 
 
-    loader = DataLoader(vid_dataset, batch_size=1, shuffle=True, num_workers=4, collate_fn=collatefn)
+    loader = DataLoader(vid_features, batch_size=1, shuffle=False, num_workers=0, collate_fn=collatefn)
     for data in tqdm(loader):
-        k = data['files'][0]
-        feats = data['features']
-        print(feats.shape)
+        k = data['files']
+        f = data['features']
         pk = Path(k).with_suffix("")
         bn = pk.name
         par = pk.parent.name 
         fname = os.path.join(par, bn)
-        _ = model.score(feats, fname)
+        _ = model.score(f, fname)
 
     # example
     """
