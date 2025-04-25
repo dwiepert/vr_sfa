@@ -672,7 +672,7 @@ if __name__ == "__main__":
                                 downsample=args.downsample, downsample_method=args.downsample_method,
                                 to_tensor=args.to_tensor)
     
-    feats = pca_features.get_concatenated_features(keep=5000)
+    feats = pca_features.get_concatenated_features(keep=10000)
 
     model = residualPCA(iv=feats,
                         fnames=pca_features.files,
