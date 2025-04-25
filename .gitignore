@@ -13,3 +13,5 @@ th14_mae_g_16_4.tar.gz
 thumos.tar.gz
 actionformer_release/
 *.pyc
+*.zip
+encodings/
