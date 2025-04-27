@@ -8,7 +8,29 @@ Average mAP: 68.44 (%)
 All done! Total time: 67.77 sec
 
 2. Baseline 1408 features downsampled 
-
+    a. downsampled1 
+    b. downsampled2 (cutoff .5)
+    c. downsampled3 (cutoff .33)
+    |tIoU = 0.30: mAP = 9.80 (%) Recall@1x = 21.76 (%) Recall@5x = 29.94 (%) 
+    |tIoU = 0.40: mAP = 7.66 (%) Recall@1x = 18.28 (%) Recall@5x = 27.93 (%) 
+    |tIoU = 0.50: mAP = 5.05 (%) Recall@1x = 14.20 (%) Recall@5x = 24.35 (%) 
+    |tIoU = 0.60: mAP = 2.56 (%) Recall@1x = 9.15 (%) Recall@5x = 19.12 (%) 
+    |tIoU = 0.70: mAP = 1.05 (%) Recall@1x = 4.99 (%) Recall@5x = 12.77 (%) 
+    Average mAP: 5.23 (%)
+    d. downsampled4 (cutoff .25)
+    |tIoU = 0.30: mAP = 7.14 (%) Recall@1x = 18.67 (%) Recall@5x = 22.69 (%) 
+    |tIoU = 0.40: mAP = 5.77 (%) Recall@1x = 16.38 (%) Recall@5x = 21.36 (%) 
+    |tIoU = 0.50: mAP = 4.07 (%) Recall@1x = 12.86 (%) Recall@5x = 18.75 (%) 
+    |tIoU = 0.60: mAP = 2.23 (%) Recall@1x = 8.70 (%) Recall@5x = 15.07 (%) 
+    |tIoU = 0.70: mAP = 0.69 (%) Recall@1x = 4.83 (%) Recall@5x = 10.16 (%) 
+    Average mAP: 3.98 (%)
+    e. downsampled5 (cutoff .20)
+    |tIoU = 0.30: mAP = 6.13 (%) Recall@1x = 15.33 (%) Recall@5x = 18.50 (%) 
+    |tIoU = 0.40: mAP = 4.43 (%) Recall@1x = 13.12 (%) Recall@5x = 16.85 (%) 
+    |tIoU = 0.50: mAP = 2.86 (%) Recall@1x = 10.54 (%) Recall@5x = 15.30 (%) 
+    |tIoU = 0.60: mAP = 1.59 (%) Recall@1x = 7.85 (%) Recall@5x = 12.27 (%) 
+    |tIoU = 0.70: mAP = 0.62 (%) Recall@1x = 5.03 (%) Recall@5x = 8.25 (%) 
+    Average mAP: 3.13 (%)
 
 3. Baseline PCA-50 features 
 |tIoU = 0.30: mAP = 73.80 (%) Recall@1x = 78.96 (%) Recall@5x = 94.71 (%) 
@@ -19,8 +41,30 @@ All done! Total time: 67.77 sec
 Average mAP: 55.46 (%)
 All done! Total time: 70.61 sec
 
-4. Baseline PCA-50 features downsample
-
+4. Baseline PCA-50 features downsampled
+    a. downsampled1
+    b. downsampled2 (cutoff .50)
+    c. downsampled3 (cutoff .33)
+    |tIoU = 0.30: mAP = 9.49 (%) Recall@1x = 22.75 (%) Recall@5x = 30.32 (%) 
+    |tIoU = 0.40: mAP = 7.26 (%) Recall@1x = 19.13 (%) Recall@5x = 27.69 (%) 
+    |tIoU = 0.50: mAP = 4.74 (%) Recall@1x = 14.77 (%) Recall@5x = 24.31 (%) 
+    |tIoU = 0.60: mAP = 2.59 (%) Recall@1x = 9.96 (%) Recall@5x = 19.01 (%) 
+    |tIoU = 0.70: mAP = 0.87 (%) Recall@1x = 5.73 (%) Recall@5x = 11.87 (%) 
+    Average mAP: 4.99 (%)
+    d. downsampled4 (cutoff .25)
+    |tIoU = 0.30: mAP = 7.06 (%) Recall@1x = 18.54 (%) Recall@5x = 23.03 (%) 
+    |tIoU = 0.40: mAP = 5.32 (%) Recall@1x = 15.55 (%) Recall@5x = 21.23 (%) 
+    |tIoU = 0.50: mAP = 3.55 (%) Recall@1x = 12.38 (%) Recall@5x = 19.55 (%) 
+    |tIoU = 0.60: mAP = 2.03 (%) Recall@1x = 8.89 (%) Recall@5x = 16.09 (%) 
+    |tIoU = 0.70: mAP = 0.67 (%) Recall@1x = 4.47 (%) Recall@5x = 9.51 (%) 
+    Average mAP: 3.73 (%)
+    e. downsampled5 (cutoff .20)
+    |tIoU = 0.30: mAP = 5.56 (%) Recall@1x = 14.93 (%) Recall@5x = 18.35 (%) 
+    |tIoU = 0.40: mAP = 4.25 (%) Recall@1x = 12.95 (%) Recall@5x = 16.79 (%) 
+    |tIoU = 0.50: mAP = 2.84 (%) Recall@1x = 10.95 (%) Recall@5x = 15.28 (%) 
+    |tIoU = 0.60: mAP = 1.42 (%) Recall@1x = 7.75 (%) Recall@5x = 12.39 (%) 
+    |tIoU = 0.70: mAP = 0.53 (%) Recall@1x = 4.71 (%) Recall@5x = 7.73 (%) 
+    Average mAP: 2.92 (%)
 
 5. PCA-SFA features
 |tIoU = 0.30: mAP = 72.28 (%) Recall@1x = 78.05 (%) Recall@5x = 94.40 (%) 
@@ -31,8 +75,30 @@ All done! Total time: 70.61 sec
 Average mAP: 55.17 (%)
 All done! Total time: 81.38 sec
 
-6. PCA-SFA features downsample
-
+6. PCA-SFA features downsampled
+    a. downsampled1
+    b. downsampled2 (cutoff .50)
+    c. downsampled3 (cutoff .33)
+    |tIoU = 0.30: mAP = 10.61 (%) Recall@1x = 23.03 (%) Recall@5x = 30.50 (%) 
+    |tIoU = 0.40: mAP = 7.58 (%) Recall@1x = 19.76 (%) Recall@5x = 28.44 (%) 
+    |tIoU = 0.50: mAP = 4.90 (%) Recall@1x = 15.26 (%) Recall@5x = 24.79 (%) 
+    |tIoU = 0.60: mAP = 2.28 (%) Recall@1x = 10.07 (%) Recall@5x = 19.32 (%) 
+    |tIoU = 0.70: mAP = 0.89 (%) Recall@1x = 5.84 (%) Recall@5x = 12.38 (%) 
+    Average mAP: 5.25 (%)
+    d. downsampled4 (cutoff .25)
+    |tIoU = 0.30: mAP = 8.08 (%) Recall@1x = 19.21 (%) Recall@5x = 23.31 (%) 
+    |tIoU = 0.40: mAP = 6.07 (%) Recall@1x = 16.02 (%) Recall@5x = 21.93 (%) 
+    |tIoU = 0.50: mAP = 4.26 (%) Recall@1x = 13.21 (%) Recall@5x = 19.56 (%) 
+    |tIoU = 0.60: mAP = 2.17 (%) Recall@1x = 9.65 (%) Recall@5x = 15.23 (%) 
+    |tIoU = 0.70: mAP = 0.84 (%) Recall@1x = 5.56 (%) Recall@5x = 9.83 (%) 
+    Average mAP: 4.28 (%)
+    e. downsampled5 (cutoff .20)
+    |tIoU = 0.30: mAP = 5.75 (%) Recall@1x = 15.38 (%) Recall@5x = 18.77 (%) 
+    |tIoU = 0.40: mAP = 4.14 (%) Recall@1x = 13.59 (%) Recall@5x = 17.59 (%) 
+    |tIoU = 0.50: mAP = 2.70 (%) Recall@1x = 11.65 (%) Recall@5x = 15.77 (%) 
+    |tIoU = 0.60: mAP = 1.34 (%) Recall@1x = 7.97 (%) Recall@5x = 12.68 (%) 
+    |tIoU = 0.70: mAP = 0.64 (%) Recall@1x = 4.82 (%) Recall@5x = 8.67 (%) 
+    Average mAP: 2.91 (%)
 
 7. SFA No PCA features
 |tIoU = 0.30: mAP = 11.13 (%) Recall@1x = 45.32 (%) Recall@5x = 64.29 (%) 
