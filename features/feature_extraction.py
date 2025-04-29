@@ -381,6 +381,20 @@ class Identity():
         """
         return sample
     
+class Reshape():
+    """
+    """
+    def __call__(self, sample:Dict[str, Union[np.ndarray, torch.Tensor]]) -> Dict[str,torch.Tensor]:
+        """
+        Transform sample
+        :param sample: dict, sample
+        :return sample: dict, transformed sample
+        """
+        features = sample['features']
+        features = np.swapaxes(np.squeeze(features),0,1)
+        sample['features'] = features
+        return sample
+
 class Downsample3D():
     """
     """
@@ -525,6 +539,8 @@ class VideoDataset(Dataset):
         print(f'# of files: {len(self.files)}')
 
         transforms = [Identity()]
+        if self.features[self.files[0]].ndim == 3:
+            transforms.append(Reshape())
         if self.downsample:
             transforms.append(Downsample(method=downsample_method, step_size=int(1/cutoff_freq)))
         if self.to_tensor:

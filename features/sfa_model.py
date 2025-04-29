@@ -20,6 +20,7 @@ from torch.utils.data import DataLoader
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
 from feature_extraction import VideoDataset, residualPCA
+from torch_flops import FlopCounterMode
 
 
 def custom_collatefn(batch) -> torch.tensor:
@@ -237,6 +238,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=args.batch_sz, shuffle=True, num_workers=0, collate_fn=custom_collatefn)
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn)
+    flop_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=custom_collatefn )
 
     # LOAD/SAVE MODEL CONFIG
     if args.model_config is not None:
@@ -322,6 +324,17 @@ if __name__ == "__main__":
         #print(model.state_dict().keys())
         model.load_state_dict(checkpoint)
     model = model.to(device)
+
+    i = 0
+    for data in enumerate(flop_loader):
+        if i >= 1:
+            break
+        inputs = data['features'].to(device)
+        with FlopCounterMode(model) as count:
+            encoding = model.encode(inputs)
+            outputs = model.decode(encoding)
+        print(f"FLOPs: {count.total_flops}")
+        i += 1
 
 
     if not args.eval_only:
