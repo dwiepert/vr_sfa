@@ -325,10 +325,11 @@ if __name__ == "__main__":
         model.load_state_dict(checkpoint)
     model = model.to(device)
 
-    i = 0
-    for data in enumerate(flop_loader):
+    for i, data in enumerate(flop_loader):
         if i >= 1:
             break
+        print(i)
+        print(data)
         inputs = data['features'].to(device)
         input_shape = inputs.shape
         flops, macs, params = calculate_flops(model=model, 
@@ -336,8 +337,6 @@ if __name__ == "__main__":
                                             output_as_string=True,
                                             output_precision=4)
         print("FLOPs:%s   MACs:%s   Params:%s \n" %(flops, macs, params))
-
-        i += 1
 
 
     if not args.eval_only:
