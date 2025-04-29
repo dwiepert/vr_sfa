@@ -331,8 +331,9 @@ if __name__ == "__main__":
         print(i)
         print(data)
         inputs = data['features'].to(device)
-        input_shape = tuple(list(inputs.shape))
+        input_shape = list(inputs.shape)
         input_shape[1] = args.input_dim
+        input_shape = tuple(input_shape)
         print(input_shape)
         flops, macs, params = calculate_flops(model=model, 
                                             input_shape=input_shape,
