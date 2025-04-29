@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
 from feature_extraction import VideoDataset, residualPCA
-from torch_flops import FlopCounterMode
+from torch_flops.utils.flop_counter import FlopCounterMode
 
 
 def custom_collatefn(batch) -> torch.tensor:
