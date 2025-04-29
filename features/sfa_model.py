@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader
 from emaae.models import CNNAutoEncoder
 from emaae.loops import train, set_up_train, evaluate
 from feature_extraction import VideoDataset, residualPCA
-from torch_flops.utils.flop_counter import FlopCounterMode
+from calflops import calculate_flops
 
 
 def custom_collatefn(batch) -> torch.tensor:
@@ -330,10 +330,13 @@ if __name__ == "__main__":
         if i >= 1:
             break
         inputs = data['features'].to(device)
-        with FlopCounterMode(model) as count:
-            encoding = model.encode(inputs)
-            outputs = model.decode(encoding)
-        print(f"FLOPs: {count.total_flops}")
+        input_shape = inputs.shape
+        flops, macs, params = calculate_flops(model=model, 
+                                            input_shape=input_shape,
+                                            output_as_string=True,
+                                            output_precision=4)
+        print("FLOPs:%s   MACs:%s   Params:%s \n" %(flops, macs, params))
+
         i += 1
 
 
